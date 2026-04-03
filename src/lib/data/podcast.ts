@@ -1,13 +1,10 @@
 import { sql } from "../db";
 
 export interface PodcastTranscript {
-	intro: string;
-	segments: Array<{
-		headline: string;
-		content: string;
-		transition?: string;
+	dialogue: Array<{
+		speaker: "Host" | "Expert";
+		text: string;
 	}>;
-	outro: string;
 	audio_url?: string;
 	created_at?: string;
 }

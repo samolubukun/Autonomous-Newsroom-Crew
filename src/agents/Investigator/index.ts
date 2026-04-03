@@ -53,13 +53,29 @@ export async function runInvestigator(options: { dynamicSources?: string[] } = {
 		})
 	);
 
+	console.log("Investigator: Scrape Results Recap:", scrapeResults.map(r => {
+		if (r.status === "rejected") return "REJECTED";
+		return `${r.value.source}: ${r.value.result.success ? "SUCCESS" : "FAILED"} (chars: ${String(r.value.result.markdown || "").length})`;
+	}));
+
 	// 2. Combine all markdown into one prompt, truncated per source
 	const combinedContent = scrapeResults
 		.map((r) => {
-			if (r.status !== "fulfilled" || !r.value.result.success) return null;
+			if (r.status !== "fulfilled") {
+				console.error("Investigator: Scrape Promise rejected:", r.reason);
+				return null;
+			}
+			if (!r.value.result.success) {
+				console.error(`Investigator: Scrape failed for ${r.value.source}:`, r.value.result.error || "Unknown error");
+				return null;
+			}
 			const { source, result } = r.value;
-			const markdown = (result.markdown || "").slice(0, 8000); // 8k chars per source
-			if (!markdown) return null;
+			let rawMarkdown = typeof result.markdown === "string" ? result.markdown : (result.data?.markdown || "");
+			if (typeof rawMarkdown !== "string") {
+			    rawMarkdown = String(rawMarkdown);
+			}
+			const markdown = rawMarkdown.slice(0, 8000); // 8k chars per source
+			if (!markdown || markdown === "[object Object]") return null;
 			return `=== SOURCE: ${source} ===\n${markdown}`;
 		})
 		.filter(Boolean)

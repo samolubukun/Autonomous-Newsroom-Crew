@@ -11,7 +11,7 @@ async function crawl4ai(url: string): Promise<{ success: boolean; markdown?: str
 	const response = await fetch(`${CRAWL4AI_BASE}/crawl`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({ urls: [url] }),
+		body: JSON.stringify({ urls: [url], priority: 10, format: "markdown" }),
 	});
 
 	if (!response.ok) {
@@ -19,10 +19,36 @@ async function crawl4ai(url: string): Promise<{ success: boolean; markdown?: str
 	}
 
 	const data = await response.json() as any;
+	
+	// The API returns { results: [{ markdown, html, links }] } or { data: { markdown: ... } }
+	const result = data?.results?.[0] || data?.data || data;
+	
+	let markdown = "";
+	if (typeof result?.markdown === "string") {
+	    markdown = result.markdown;
+	} else if (typeof result?.markdown === "object" && result.markdown !== null) {
+	    markdown = result.markdown.fit_markdown || result.markdown.raw_markdown || "";
+	} 
+	
+	if (!markdown) {
+	    markdown = typeof result?.content === "string" ? result.content : "";
+	}
 
-	// The API returns { results: [{ markdown, html, links }] }
-	const result = data?.results?.[0];
-	const markdown = result?.markdown || result?.html || "";
+	// Fallback: If no markdown, extract <body> if possible, then strip tags
+	if (!markdown && result?.html) {
+		console.log(`[Scraper] Fallback: Standardizing HTML from ${url}`);
+		
+		// Attempt to extract body content only
+		const bodyMatch = result.html.match(/<body\b[^>]*>([\s\S]*)<\/body>/i);
+		let contentToClean = bodyMatch ? bodyMatch[1] : result.html;
+		
+		markdown = contentToClean
+			.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+			.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "")
+			.replace(/<[^>]+>/g, " ")
+			.replace(/\s+/g, " ")
+			.trim();
+	}
 
 	if (!markdown) {
 		throw new Error("Crawl4AI returned empty content");

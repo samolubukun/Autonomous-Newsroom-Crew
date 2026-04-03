@@ -14,28 +14,32 @@ async function createPodcastTranscript(storiesToProcess: any[]) {
 	const { object } = await generateObject({
 		model: getAiModel({ power: true }),
 		schema: z.object({
-			intro: z.string(),
-			segments: z.array(
+			dialogue: z.array(
 				z.object({
-					headline: z.string(),
-					content: z.string(),
-					transition: z.string().optional(),
-				}),
+					speaker: z.enum(["Host", "Expert"]),
+					text: z.string(),
+				})
 			),
-			outro: z.string(),
 		}),
 		prompt: `
-You are an engaging AI podcast host for the "AI Newsroom Daily Deep Dive". 
-Your goal is to create a thorough, engaging 5 to 8-minute comprehensive podcast script covering today's top stories.
+You are the lead writers and voice actors for the "Daily Edition" podcast.
+Your goal is to create a high-end, conversational audio script covering today's top stories.
 
-Do not just read the summaries. Instead:
-1. Provide deep analysis and insightful commentary on why these stories matter.
-2. Weave the stories together with natural, thoughtful transitions.
-3. Be energetic, informative, and professional. 
-4. Spend a good amount of time unpacking the implications of each story.
-5. Avoid overly hyped words like "revolutionize" or "game-changer". Keep it grounded but fascinating.
+The two speakers are:
+1. "Host" - Professional, drives the flow, keeps the energy high.
+2. "Expert" - Analytical, provides deep context, stays grounded.
 
-For each segment, write a long-form conversational script (at least 200-300 words per segment) that sounds natural when spoken aloud.
+IMPORTANT RULES FOR SCRIPTING:
+- NEVER mention the words "Host", "Expert", "analyst", or their roles in the dialogue. 
+- Do not say "Welcome back to the show" or "Thanks for having me" in every segment. 
+- Speak like two friends or colleagues who are experts in the field. 
+- Ensure a steady, natural, and efficient pace. Avoid long-winded monologues. 
+- DO NOT USE ELLIPSES (...): Avoid any hesitation marks. Keep the sentences clean and flowing directly into each other.
+- The dialogue should be punchy and informative. One person explains a fact, the other provides a "wow" point or a "so what" implication.
+- Do not use overly formal transitions like "Now moving on to our next story". Instead, use natural topical pivots.
+
+For each story, spend a robust amount of time (200-300 words combined) discussing it naturally.
+End the podcast with a crisp, efficient sign-off.
 
 Here are today's stories to unpack:
 ${storiesToProcess.map(s => `- ${s.headline}: ${s.summary}`).join("\n")}

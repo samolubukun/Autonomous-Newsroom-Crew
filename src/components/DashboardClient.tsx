@@ -8,6 +8,29 @@ export function DashboardClient({ published, latestPodcast }: { published: any[]
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const waveformRef = useRef<HTMLDivElement>(null);
+
+  // Time formatter (MM:SS)
+  const formatTime = (time: number) => {
+    if (isNaN(time)) return "0:00";
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  const handleSeek = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!audioRef.current || !waveformRef.current || (duration === 0)) return;
+
+    const rect = waveformRef.current.getBoundingClientRect();
+    const x = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
+    const position = Math.max(0, Math.min(1, (x - rect.left) / rect.width));
+    
+    audioRef.current.currentTime = position * duration;
+    setProgress(position * 100);
+  };
 
   // Audio Handlers
   useEffect(() => {
@@ -15,13 +38,21 @@ export function DashboardClient({ published, latestPodcast }: { published: any[]
     if (!audio) return;
 
     const updateProgress = () => {
+      setCurrentTime(audio.currentTime);
+      setDuration(audio.duration);
       setProgress((audio.currentTime / audio.duration) * 100);
     };
 
+    const setAudioDuration = () => {
+      setDuration(audio.duration);
+    };
+
     audio.addEventListener("timeupdate", updateProgress);
+    audio.addEventListener("loadedmetadata", setAudioDuration);
     audio.addEventListener("ended", () => setIsPlaying(false));
     return () => {
       audio.removeEventListener("timeupdate", updateProgress);
+      audio.removeEventListener("loadedmetadata", setAudioDuration);
       audio.removeEventListener("ended", () => setIsPlaying(false));
     };
   }, []);
@@ -99,11 +130,18 @@ export function DashboardClient({ published, latestPodcast }: { published: any[]
                 </div>
               </div>
 
-              {/* Top Tier Waveform Visualizer */}
-              <div className="w-full h-16 md:h-20 mb-8 flex items-end gap-[1.5px] md:gap-[3px] group">
+              {/* Top Tier Waveform Visualizer - INTERACTIVE */}
+              <div 
+                ref={waveformRef}
+                onMouseDown={(e) => { setIsDragging(true); handleSeek(e); }}
+                onMouseMove={(e) => { if (isDragging) handleSeek(e); }}
+                onMouseUp={() => setIsDragging(false)}
+                onMouseLeave={() => setIsDragging(false)}
+                className="w-full h-16 md:h-20 mb-8 flex items-end gap-[1.5px] md:gap-[3px] group cursor-pointer select-none"
+              >
                 {waveformHeights.map((h, i) => {
                   const isActive = (i / waveformBars) * 100 <= progress;
-                  const barHeight = h * 100;
+                  const barHeight = Number((h * 100).toFixed(2));
                   return (
                     <motion.div
                       key={i}
@@ -129,14 +167,22 @@ export function DashboardClient({ published, latestPodcast }: { published: any[]
                 })}
               </div>
 
-              {/* Controls */}
-              <div className="flex items-center justify-center gap-6">
-                <button 
-                  onClick={toggleVolume}
-                  className="w-16 h-16 rounded-full bg-zinc-900 dark:bg-white text-white dark:text-black flex items-center justify-center hover:scale-105 active:scale-95 transition-transform shadow-lg"
-                >
-                  {isPlaying ? <Pause className="fill-current" /> : <Play className="fill-current ml-1" />}
-                </button>
+              {/* Controls & Time */}
+              <div className="flex flex-col items-center gap-4">
+                <div className="flex items-center justify-center gap-6">
+                  <button 
+                    onClick={toggleVolume}
+                    className="w-16 h-16 rounded-full bg-zinc-900 dark:bg-white text-white dark:text-black flex items-center justify-center hover:scale-105 active:scale-95 transition-transform shadow-lg"
+                  >
+                    {isPlaying ? <Pause className="fill-current" size={24} /> : <Play className="fill-current ml-1" size={24} />}
+                  </button>
+                </div>
+                
+                <div className="flex items-center gap-3 text-[11px] font-bold text-zinc-500 dark:text-zinc-500 tabular-nums tracking-tighter">
+                  <span>{formatTime(currentTime)}</span>
+                  <div className="w-1 h-1 rounded-full bg-zinc-300 dark:bg-zinc-800" />
+                  <span>{formatTime(duration)}</span>
+                </div>
               </div>
               <audio ref={audioRef} src={latestPodcast.audio_url} className="hidden" />
             </>

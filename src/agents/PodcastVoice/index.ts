@@ -4,7 +4,10 @@ import path from "node:path";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 const DEEPGRAM_API_KEY = process.env.DEEPGRAM_API_KEY || "";
-const DEEPGRAM_URL = "https://api.deepgram.com/v1/speak?model=aura-2-thalia-en";
+const VOICE_MAP = {
+	"Host": "aura-asteria-en",
+	"Expert": "aura-orion-en"
+};
 const CHUNK_SIZE = 1950; // Deepgram free limit is 2000 chars per request
 
 // Initialize DigitalOcean Spaces client (S3-compatible via AWS SDK)
@@ -20,68 +23,64 @@ const spacesClient = new S3Client({
 
 const SPACES_BUCKET = process.env.DO_SPACES_BUCKET || "";
 
-/**
- * Format a podcast transcript into a single string for TTS
- */
-function formatTranscriptForVoice(transcript: PodcastTranscript): string {
-	let scriptText = `${transcript.intro}\n\n`;
-
-	transcript.segments.forEach((segment, index) => {
-		scriptText += `${segment.headline}\n`;
-		scriptText += `${segment.content}\n`;
-
-		if (segment.transition && index < transcript.segments.length - 1) {
-			scriptText += `${segment.transition}\n\n`;
-		}
-	});
-
-	scriptText += transcript.outro;
-	return scriptText;
+interface DialogueChunk {
+	speaker: "Host" | "Expert";
+	text: string;
 }
 
 /**
- * Split text into sentence-aware chunks of max CHUNK_SIZE chars.
- * Splits on sentence boundaries (". ", "! ", "? ") to avoid cutting mid-sentence.
+ * Split dialogue into sentence-aware chunks of max CHUNK_SIZE chars.
+ * Splits on sentence boundaries (". ", "! ", "? ") to avoid cutting mid-sentence
+ * while preserving the correct speaker voice mapping.
  */
-function chunkText(text: string, maxLen = CHUNK_SIZE): string[] {
-	if (text.length <= maxLen) return [text];
+function chunkDialogue(dialogue: PodcastTranscript["dialogue"], maxLen = CHUNK_SIZE): DialogueChunk[] {
+	const chunks: DialogueChunk[] = [];
 
-	const chunks: string[] = [];
-	let remaining = text;
-
-	while (remaining.length > maxLen) {
-		// Find the last sentence boundary within maxLen
-		let cutAt = maxLen;
-		const sentenceEnd = remaining.slice(0, maxLen).search(/[.!?]\s[^.!?\s]/g);
-		const lastPeriod = Math.max(
-			remaining.lastIndexOf(". ", maxLen),
-			remaining.lastIndexOf("! ", maxLen),
-			remaining.lastIndexOf("? ", maxLen),
-		);
-
-		if (lastPeriod > maxLen * 0.6) {
-			cutAt = lastPeriod + 2; // include the punctuation + space
+	for (const turn of dialogue) {
+		if (turn.text.length <= maxLen) {
+			chunks.push(turn);
+			continue;
 		}
 
-		chunks.push(remaining.slice(0, cutAt).trim());
-		remaining = remaining.slice(cutAt).trim();
+		let remaining = turn.text;
+		while (remaining.length > maxLen) {
+			// Find the last sentence boundary within maxLen
+			let cutAt = maxLen;
+			const lastPeriod = Math.max(
+				remaining.lastIndexOf(". ", maxLen),
+				remaining.lastIndexOf("! ", maxLen),
+				remaining.lastIndexOf("? ", maxLen),
+			);
+
+			if (lastPeriod > maxLen * 0.6) {
+				cutAt = lastPeriod + 2; // include the punctuation + space
+			}
+
+			chunks.push({ speaker: turn.speaker, text: remaining.slice(0, cutAt).trim() });
+			remaining = remaining.slice(cutAt).trim();
+		}
+
+		if (remaining.length > 0) {
+			chunks.push({ speaker: turn.speaker, text: remaining });
+		}
 	}
 
-	if (remaining.length > 0) chunks.push(remaining);
 	return chunks;
 }
 
 /**
- * Generate audio for a single chunk of text via Deepgram
+ * Generate audio for a single dialogue chunk via Deepgram
  */
-async function generateAudioChunk(text: string): Promise<ArrayBuffer> {
-	const response = await fetch(DEEPGRAM_URL, {
+async function generateAudioChunk(chunk: DialogueChunk): Promise<ArrayBuffer> {
+	const url = `https://api.deepgram.com/v1/speak?model=${VOICE_MAP[chunk.speaker]}`;
+	
+	const response = await fetch(url, {
 		method: "POST",
 		headers: {
 			Authorization: `Token ${DEEPGRAM_API_KEY}`,
 			"Content-Type": "application/json",
 		},
-		body: JSON.stringify({ text }),
+		body: JSON.stringify({ text: chunk.text }),
 	});
 
 	if (!response.ok) {
@@ -93,28 +92,28 @@ async function generateAudioChunk(text: string): Promise<ArrayBuffer> {
 }
 
 /**
- * Generate full podcast audio — splits into chunks, TTS each, concatenates buffers.
+ * Generate full podcast audio — splits into chunks, TTS each with correct speaker model, concatenates buffers.
  */
-async function generateAudio(text: string): Promise<ArrayBuffer> {
-	const chunks = chunkText(text);
-	console.log(`PodcastVoice: Generating audio in ${chunks.length} chunk(s)...`);
+async function generateAudio(dialogue: PodcastTranscript["dialogue"]): Promise<ArrayBuffer> {
+	const chunks = chunkDialogue(dialogue);
+	console.log(`PodcastVoice: Generating audio in ${chunks.length} chunk(s) across different speakers...`);
 
 	const buffers: Buffer[] = [];
 
 	for (let i = 0; i < chunks.length; i++) {
-		console.log(`PodcastVoice: Chunk ${i + 1}/${chunks.length} (${chunks[i].length} chars)`);
+		console.log(`PodcastVoice: Processing ${chunks[i].speaker} - Chunk ${i + 1}/${chunks.length} (${chunks[i].text.length} chars)`);
 		const audioBuffer = await generateAudioChunk(chunks[i]);
 		buffers.push(Buffer.from(audioBuffer));
 
 		// Small delay between Deepgram requests to avoid rate limits
 		if (i < chunks.length - 1) {
-			await new Promise(r => setTimeout(r, 500));
+			await new Promise(r => setTimeout(r, 600));
 		}
 	}
 
-	// Concatenate all MP3 buffers into one
+	// Concatenate all MP3 buffers into one master track
 	const combined = Buffer.concat(buffers);
-	console.log(`PodcastVoice: Combined ${buffers.length} chunks into ${combined.length} bytes of audio`);
+	console.log(`PodcastVoice: Stitched ${buffers.length} segments into ${combined.length} bytes of dialogue`);
 	return combined.buffer.slice(combined.byteOffset, combined.byteOffset + combined.byteLength) as ArrayBuffer;
 }
 
@@ -151,16 +150,16 @@ async function uploadToSpaces(filename: string, audioBuffer: ArrayBuffer): Promi
 }
 
 /**
- * PodcastVoice Agent - Generates audio from podcast transcripts using Deepgram and DO Spaces.
+ * PodcastVoice Agent - Generates dynamic dual-voice audio from podcast transcripts.
  */
 export async function runPodcastVoice(options: { transcript?: PodcastTranscript } = {}) {
-	console.log("PodcastVoice: Starting to generate audio for podcast");
+	console.log("PodcastVoice: Starting to generate conversational audio");
 
 	const transcript = options.transcript || (await podcast.getLatest()) as any;
 
-	if (!transcript) {
-		console.error("PodcastVoice: No transcript found");
-		return { success: false, error: "No transcript found" };
+	if (!transcript || !transcript.dialogue) {
+		console.error("PodcastVoice: No valid script/dialogue found");
+		return { success: false, error: "No valid dialogue found" };
 	}
 
 	if (transcript.audio_url) {
@@ -168,11 +167,12 @@ export async function runPodcastVoice(options: { transcript?: PodcastTranscript 
 		return { success: true, message: "Transcript already has audio", audioUrl: transcript.audio_url };
 	}
 
-	const scriptText = formatTranscriptForVoice(transcript);
-	console.log(`PodcastVoice: Script is ${scriptText.length} chars`);
+	// Process dialogue text logic
+	const totalChars = transcript.dialogue.reduce((acc: number, val: {text: string}) => acc + val.text.length, 0);
+	console.log(`PodcastVoice: Dialogue length is ${totalChars} chars across ${transcript.dialogue.length} exchanges`);
 
 	// Chunk + generate + concatenate
-	const audioBuffer = await generateAudio(scriptText);
+	const audioBuffer = await generateAudio(transcript.dialogue);
 
 	const date = new Date().toISOString().split("T")[0];
 	const filename = `podcast-${date}.mp3`;
