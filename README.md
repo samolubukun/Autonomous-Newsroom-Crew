@@ -4,8 +4,10 @@
 <br />
 <a href="https://nextjs.org/"><img alt="Next.js" src="https://img.shields.io/badge/Next.js-14+-black?logo=next.js&logoColor=white"></a>
 <a href="https://reactjs.org/"><img alt="React" src="https://img.shields.io/badge/React-18-blue?logo=react&logoColor=white"></a>
+<a href="https://www.typescriptlang.org/"><img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5.0-3178C6?logo=typescript&logoColor=white"></a>
 <a href="https://tailwindcss.com/"><img alt="TailwindCSS" src="https://img.shields.io/badge/TailwindCSS-3.4-38B2AC?logo=tailwind-css&logoColor=white"></a>
 <a href="https://deepgram.com/"><img alt="Deepgram" src="https://img.shields.io/badge/Deepgram-Aura-purple"></a>
+<a href="https://ai.google.dev/"><img alt="Gemini" src="https://img.shields.io/badge/Google_Gemini-2.5_Flash-4285F4?logo=googlegemini&logoColor=white"></a>
 <img alt="License" src="https://badgen.now.sh/badge/license/MIT">
 </div>
 
@@ -31,12 +33,12 @@ The high-performance architecture guarantees seamless processing from extraction
 
 The **crew** isn't just a simple script—it's a relay team of autonomous agents operating under a single instruction.
 
-- **Investigator** — Scours the web for vital facts and raw developments.
-- **Chief Editor** — Performs tiered triage of news items into Lead features, Analytical reports, or Briefs.
-- **Editor** — Refines raw data into crisp stories and summaries for rapid-fire consumption.
-- **Investigative Reporter** — Conducts deep-dive research and writes high-fidelity long-form features.
-- **Podcast Editor** — Drafts fluid conversational scripts explicitly tailored for audio output.
-- **Podcast Voice** — Generates realistic voice narration using Deepgram TTS for the final broadcast.
+- **Investigator** - Scours the web for vital facts and raw developments.
+- **Chief Editor** - Performs tiered triage of news items into Lead features, Analytical reports, or Briefs.
+- **Editor** - Refines raw data into crisp stories and summaries for rapid-fire consumption.
+- **Investigative Reporter** - Conducts deep-dive research and writes high-fidelity long-form features.
+- **Podcast Editor** - Drafts fluid conversational scripts explicitly tailored for audio output.
+- **Podcast Voice** - Generates realistic voice narration using Deepgram TTS for the final broadcast.
 
 ## Setup & Installation
 
