@@ -11,11 +11,11 @@
 
 <br/>
 
-## 🚀 Overview
+## Overview
 
 **AI Newsroom** is a fully automated, multi-agent content generation pipeline that leverages an assembly line of 5 highly specialized autonomous agents. By scouring the web for raw data and flawlessly relaying it through an AI pipeline, it automatically publishes highly curated daily news roundups alongside ultra-realistic auto-generated podcasts.
 
-## 🛠 Tech Stack
+## Tech Stack
 
 Our high-performance architecture guarantees seamless processing from extraction to audio rendering.
 
@@ -27,17 +27,17 @@ Our high-performance architecture guarantees seamless processing from extraction
 - **Database & Storage:** PostgreSQL (Neon) & DigitalOcean Spaces (S3 compatible)
 - **Caching & State:** Upstash (Serverless Redis)
 
-## ✨ The Engine Room (5 Core Agents)
+## The Engine Room (5 Core Agents)
 
 Our pipeline isn't just a simple script—it's a relay team of autonomous agents operating under a single instruction.
 
-1. 🔍 **Investigator** - Scours the web for vital facts and raw developments.
-2. 🛡️ **Filter** - Drops all noise for clear signal, removing extraneous or irrelevant data.
-3. 🧠 **Editor** - Refines raw data into crisp stories, structuring perfect journalism.
-4. 📜 **Podcast Editor** - Drafts fluid conversational scripts explicitly tailored for audio output.
-5. 🎙️ **Podcast Voice** - Generates realistic voice narration using Deepgram TTS for the final broadcast.
+- **Investigator** - Scours the web for vital facts and raw developments.
+- **Filter** - Drops all noise for clear signal, removing extraneous or irrelevant data.
+- **Editor** - Refines raw data into crisp stories, structuring perfect journalism.
+- **Podcast Editor** - Drafts fluid conversational scripts explicitly tailored for audio output.
+- **Podcast Voice** - Generates realistic voice narration using Deepgram TTS for the final broadcast.
 
-## ⚙️ Setup & Installation
+## Setup & Installation
 
 Follow these standard instructions to hook up the engine locally.
 
@@ -75,16 +75,16 @@ Follow these standard instructions to hook up the engine locally.
 
 ---
 
-## 🎧 Usage
+## Usage
 
 Once the server is running, the **AI Newsroom Dashboard** gives you immediate feedback. Simply click the **RUN PIPELINE** button in the navigation header to kick off the sequence manually. 
 
 - Watch as stories are automatically populated into the 3-column feed.
 - Listen to today's auto-generated podcast player right at the top of the interface.
 
-## 🚢 Deployment
+## Deployment
 
 Ensure all your `.env` secrets are configured in your Vercel or deployment dashboard before committing. Remember to set the Cron Jobs correctly if you wish the pipeline to operate fully autonomously daily without requiring manual triggering (the `/api/run` route is already exposed for cron services).
 
-## 📄 License
+## License
 This project is securely licensed under the MIT License.
