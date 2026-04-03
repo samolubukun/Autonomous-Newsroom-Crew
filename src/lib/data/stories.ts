@@ -10,6 +10,8 @@ export interface Story {
 	source: string;
 	original_headline?: string;
 	published_at?: string;
+	priority?: number;   // 1–10 editorial importance score
+	tier?: "lead" | "report" | "brief";  // reporting tier
 }
 
 /**
@@ -38,7 +40,7 @@ export const stories = {
 		try {
 			await sql`
 				INSERT INTO stories (
-					link, headline, summary, body, tags, category, source, original_headline
+					link, headline, summary, body, tags, category, source, original_headline, priority, tier
 				) VALUES (
 					${story.link}, 
 					${story.headline}, 
@@ -47,13 +49,17 @@ export const stories = {
 					${story.tags || null}, 
 					${story.category || null}, 
 					${story.source}, 
-					${story.original_headline || null}
+					${story.original_headline || null},
+					${story.priority ?? 5},
+					${story.tier ?? "brief"}
 				) ON CONFLICT (link) DO UPDATE SET
 					headline = EXCLUDED.headline,
 					summary = EXCLUDED.summary,
 					body = EXCLUDED.body,
 					tags = EXCLUDED.tags,
-					category = EXCLUDED.category
+					category = EXCLUDED.category,
+					priority = EXCLUDED.priority,
+					tier = EXCLUDED.tier
 			`;
 		} catch (error) {
 			console.error(`Stories: Failed to save story ${story.link}:`, error);

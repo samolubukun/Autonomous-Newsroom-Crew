@@ -11,7 +11,7 @@ export default async function DashboardPage() {
   ]);
 
   return (
-    <main className="min-h-screen relative overflow-hidden pb-32 pt-[200px] md:pt-[120px]">
+    <main className="min-h-screen relative overflow-hidden pb-4 pt-8">
       {/* Background Animated Gradient Mesh - Adaptive to System Theme */}
       <div className="absolute inset-0 z-0 pointer-events-none opacity-50 dark:opacity-40 transition-opacity duration-1000">
         <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-purple-600/20 dark:bg-purple-600/10 blur-[120px] mix-blend-multiply dark:mix-blend-screen" />

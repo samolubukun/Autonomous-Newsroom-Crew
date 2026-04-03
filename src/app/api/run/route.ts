@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { runInvestigator } from "../../../agents/Investigator";
-import { runFilter } from "../../../agents/Filter";
+import { runChiefEditor } from "../../../agents/ChiefEditor";
 import { runEditor } from "../../../agents/Editor";
+import { runReporter } from "../../../agents/Reporter";
 import { runPodcastEditor } from "../../../agents/PodcastEditor";
 import { runPodcastVoice } from "../../../agents/PodcastVoice";
 import { postPodcastToSlack } from "../../../lib/notifications";
@@ -29,7 +30,7 @@ export async function GET(request: Request) {
 
 		// 2. Filtering Phase
 		console.log("\n--- PHASE 2: FILTERING & CURATION ---");
-		const { stories } = await runFilter({ articles });
+		const { stories } = await runChiefEditor({ articles });
 		
 		if (!stories || stories.length === 0) {
 			return NextResponse.json({ success: true, message: "No relevant or unique stories found after filtering." });
@@ -43,13 +44,17 @@ export async function GET(request: Request) {
 		let audioUrl = "";
 
 		if (editedLinks && editedLinks.length > 0) {
-			// 4. Podcast Script Phase
-			console.log("\n--- PHASE 4: PODCAST SCRIPT GENERATION ---");
+			// 4. Investigative Reporting Phase
+			console.log("\n--- PHASE 4: INVESTIGATIVE REPORTING ---");
+			await runReporter();
+
+			// 5. Podcast Script Phase
+			console.log("\n--- PHASE 5: PODCAST SCRIPT GENERATION ---");
 			const { transcript } = await runPodcastEditor();
 
 			if (transcript) {
-				// 5. Podcast Voice Phase
-				console.log("\n--- PHASE 5: PODCAST VOICE PRODUCTION ---");
+				// 6. Podcast Voice Phase
+				console.log("\n--- PHASE 6: PODCAST VOICE PRODUCTION ---");
 				const voiceResult = await runPodcastVoice({ transcript });
 
 				if (voiceResult.success && voiceResult.audioUrl) {
@@ -57,7 +62,7 @@ export async function GET(request: Request) {
 					audioUrl = voiceResult.audioUrl;
 					console.log(`\n✅ Podcast produced successfully: ${voiceResult.audioUrl}`);
 
-					// 6. Notification Phase
+					// 7. Notification Phase
 					if (process.env.SLACK_WEBHOOK_URL) {
 						console.log("Publishing to Slack...");
 						await postPodcastToSlack(

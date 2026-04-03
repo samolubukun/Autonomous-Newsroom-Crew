@@ -38,7 +38,7 @@ export function Navbar() {
 	};
 
 	return (
-		<div className="absolute md:fixed top-0 left-0 right-0 z-50 flex justify-center w-full mt-4 px-4 pointer-events-none">
+		<div className="flex justify-center w-full py-6 px-4">
 			<nav className="pointer-events-auto flex flex-col md:flex-row items-center justify-between w-full max-w-7xl bg-[#0a0a0a]/70 backdrop-blur-xl border border-white/10 rounded-3xl md:rounded-[2rem] px-4 py-4 md:py-3 shadow-[0_8px_32px_rgba(0,0,0,0.4)] transition-all duration-300 gap-4 md:gap-0">
 				
 				{/* Logo Section */}

@@ -48,7 +48,14 @@ export async function runEditor(options: { stories?: Story[] } = {}) {
 		const { object } = await generateObject({
 			model: getAiModel(),
 			schema: BatchEnhancedSchema,
-			prompt: `You are a senior AI news editor. Rewrite and enhance each of the following stories to be professional, engaging, and well-structured. Write a full Markdown body (3-5 paragraphs) for each. Return one enhanced result per story using its 0-based index.\n\n${storiesContext}`,
+			prompt: `You are a senior AI news editor. Rewrite and enhance each of the following stories to be professional, engaging, and well-structured. 
+
+			For each story:
+			1. Write a catchy headline.
+			2. Write a concise 2-3 sentence summary.
+			3. ONLY if the story is a "brief" (standard news), write a 3-5 paragraph Markdown body. If the story is marked as a "lead" or "report", leave the body field as an empty string ("") as it will be handled by our investigative team.
+			
+			Return one result per story using its 0-based index.\n\n${storiesContext}`,
 		});
 
 		const editedLinks: string[] = [];
@@ -57,15 +64,19 @@ export async function runEditor(options: { stories?: Story[] } = {}) {
 			const original = stories[enhanced.index];
 			if (!original) continue;
 
+			const isHighFidelity = original.tier === "lead" || original.tier === "report";
+
 			await addStory({
 				headline: enhanced.headline,
 				summary: enhanced.summary,
-				body: enhanced.body,
+				body: isHighFidelity ? undefined : enhanced.body,
 				tags: enhanced.tags,
 				category: enhanced.category,
 				link: original.link,
 				source: original.source,
 				original_headline: original.headline,
+				priority: original.priority,
+				tier: original.tier,
 			});
 
 			editedLinks.push(original.link);
