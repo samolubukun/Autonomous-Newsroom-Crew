@@ -90,8 +90,10 @@ Follow these standard instructions to hook up the engine locally.
 
 Once the server is running, the **AI Newsroom Dashboard** gives you immediate feedback. Simply click the **RUN NEWS CREW** button in the navigation header to kick off the sequence manually. 
 
-- Watch as stories are automatically populated into the 3-column feed.
-- Listen to today's auto-generated podcast player right at the top of the interface.
+- **Lead Feature:** The single most significant AI development of the session, featuring high-fidelity research.
+- **Analytical Reports:** Deep-dive investigations with professional Markdown rendering and data-driven insights.
+- **News Briefs:** Concise summaries and quick-hit developments for rapid-fire consumption.
+- **Audio Broadcast:** An ultra-realistic dual-voice podcast player generated dynamically for every news cycle.
 
 ## Deployment
 
