@@ -177,8 +177,10 @@ export async function runPodcastVoice(options: { transcript?: PodcastTranscript 
 	const date = new Date().toISOString().split("T")[0];
 	const filename = `podcast-${date}.mp3`;
 
-	// Save locally so you can listen during testing
-	await saveLocally(filename, audioBuffer);
+	// Save locally for testing (only in development)
+	if (process.env.NODE_ENV !== "production") {
+		await saveLocally(filename, audioBuffer);
+	}
 
 	// Upload to DigitalOcean Spaces
 	let audioUrl: string;

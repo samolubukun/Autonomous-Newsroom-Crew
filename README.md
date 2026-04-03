@@ -1,6 +1,6 @@
 <div align="center">
-    <h2>AI Newsroom: Autonomous Content Pipeline</h2>
-    <strong>5 Agents. 1 Goal. Automated Intelligence.</strong> <br/>
+    <h2>AI Newsroom: Autonomous News Crew</h2>
+    <strong>6 Agents. 1 Goal. AI Agent News & Research Breakthroughs.</strong> <br/>
 <br />
 <a href="https://nextjs.org/"><img alt="Next.js" src="https://img.shields.io/badge/Next.js-14+-black?logo=next.js&logoColor=white"></a>
 <a href="https://reactjs.org/"><img alt="React" src="https://img.shields.io/badge/React-18-blue?logo=react&logoColor=white"></a>
@@ -13,11 +13,11 @@
 
 ## Overview
 
-**AI Newsroom** is a fully automated, multi-agent content generation pipeline that leverages an assembly line of 5 highly specialized autonomous agents. By scouring the web for raw data and flawlessly relaying it through an AI pipeline, it automatically publishes highly curated daily news roundups alongside ultra-realistic auto-generated podcasts.
+**AI Newsroom** is a fully automated, multi-agent content generation **crew** targeting the latest in **AI Agents, LLM research, and industry developments**. By scouring the web for raw data on emerging AI technologies and flawlessly relaying it through a highly specialized crew of agents, it automatically publishes curated daily news roundups alongside ultra-realistic auto-generated podcasts.
 
 ## Tech Stack
 
-Our high-performance architecture guarantees seamless processing from extraction to audio rendering.
+The high-performance architecture guarantees seamless processing from extraction to audio rendering.
 
 - **Frontend & App Layer:** Next.js 14 (App Router), React 18, Framer Motion
 - **Styling:** Tailwind CSS (Premium Dark Mode UI & Glassmorphism)
@@ -27,15 +27,16 @@ Our high-performance architecture guarantees seamless processing from extraction
 - **Database & Storage:** PostgreSQL (Neon) & DigitalOcean Spaces (S3 compatible)
 - **Caching & State:** Upstash (Serverless Redis)
 
-## The Engine Room (5 Core Agents)
+## The Engine Room (6 Core Agents)
 
-Our pipeline isn't just a simple script—it's a relay team of autonomous agents operating under a single instruction.
+The **crew** isn't just a simple script—it's a relay team of autonomous agents operating under a single instruction.
 
-- **Investigator** - Scours the web for vital facts and raw developments.
-- **Filter** - Drops all noise for clear signal, removing extraneous or irrelevant data.
-- **Editor** - Refines raw data into crisp stories, structuring perfect journalism.
-- **Podcast Editor** - Drafts fluid conversational scripts explicitly tailored for audio output.
-- **Podcast Voice** - Generates realistic voice narration using Deepgram TTS for the final broadcast.
+- **Investigator** — Scours the web for vital facts and raw developments.
+- **Chief Editor** — Performs tiered triage of news items into Lead features, Analytical reports, or Briefs.
+- **Editor** — Refines raw data into crisp stories and summaries for rapid-fire consumption.
+- **Investigative Reporter** — Conducts deep-dive research and writes high-fidelity long-form features.
+- **Podcast Editor** — Drafts fluid conversational scripts explicitly tailored for audio output.
+- **Podcast Voice** — Generates realistic voice narration using Deepgram TTS for the final broadcast.
 
 ## Setup & Installation
 
@@ -73,18 +74,26 @@ Follow these standard instructions to hook up the engine locally.
    ```
    *Your local newsroom will be live at `http://localhost:3000`.*
 
+6. **Trigger the News Crew (Manual):**
+   Inside the project directory, run:
+   ```bash
+   npm run newsroom
+   ```
+   *This will execute the full 6-agent news crew from digital research to high-fidelity audio generation.*
+
+
 ---
 
 ## Usage
 
-Once the server is running, the **AI Newsroom Dashboard** gives you immediate feedback. Simply click the **RUN PIPELINE** button in the navigation header to kick off the sequence manually. 
+Once the server is running, the **AI Newsroom Dashboard** gives you immediate feedback. Simply click the **RUN NEWS CREW** button in the navigation header to kick off the sequence manually. 
 
 - Watch as stories are automatically populated into the 3-column feed.
 - Listen to today's auto-generated podcast player right at the top of the interface.
 
 ## Deployment
 
-Ensure all your `.env` secrets are configured in your Vercel or deployment dashboard before committing. Remember to set the Cron Jobs correctly if you wish the pipeline to operate fully autonomously daily without requiring manual triggering (the `/api/run` route is already exposed for cron services).
+Ensure all your `.env` secrets are configured in your Vercel or deployment dashboard before committing. Remember to set the Cron Jobs correctly if you wish the crew to operate fully autonomously daily without requiring manual triggering (the `/api/run` route is already exposed for cron services).
 
 ## License
 This project is securely licensed under the MIT License.
