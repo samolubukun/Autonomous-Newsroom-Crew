@@ -67,7 +67,7 @@ export const stories = {
 		try {
 			const rows = await sql`
 				SELECT * FROM stories 
-				WHERE published_at >= NOW() - INTERVAL '24 hours'
+				WHERE DATE(published_at) = CURRENT_DATE
 				ORDER BY published_at DESC
 			`;
 			return rows as any as Story[];
@@ -86,7 +86,7 @@ export const stories = {
 				SELECT r.* FROM research r
 				LEFT JOIN stories s ON r.link = s.link
 				WHERE s.link IS NULL
-				AND r.date_found >= NOW() - INTERVAL '24 hours'
+				AND DATE(r.date_found) = CURRENT_DATE
 				ORDER BY r.date_found DESC
 			`;
 			return rows;
