@@ -1,0 +1,95 @@
+import { NextResponse } from "next/server";
+import { runInvestigator } from "../../../agents/Investigator";
+import { runFilter } from "../../../agents/Filter";
+import { runEditor } from "../../../agents/Editor";
+import { runPodcastEditor } from "../../../agents/PodcastEditor";
+import { runPodcastVoice } from "../../../agents/PodcastVoice";
+import { postPodcastToSlack } from "../../../lib/notifications";
+
+export const dynamic = "force-dynamic";
+export const maxDuration = 300; // 5 minutes (Vercel Pro)
+
+export async function GET(request: Request) {
+	// Optional: Check for auth header if you want to keep cron private
+	const authHeader = request.headers.get("authorization");
+	if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+		return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+	}
+
+	console.log("🚀 Starting Newsroom Standalone Pipeline via API");
+
+	try {
+		// 1. Investigation Phase
+		console.log("\n--- PHASE 1: INVESTIGATION ---");
+		const { articles } = await runInvestigator();
+		
+		if (!articles || articles.length === 0) {
+			return NextResponse.json({ success: true, message: "No new articles found." });
+		}
+
+		// 2. Filtering Phase
+		console.log("\n--- PHASE 2: FILTERING & CURATION ---");
+		const { stories } = await runFilter({ articles });
+		
+		if (!stories || stories.length === 0) {
+			return NextResponse.json({ success: true, message: "No relevant or unique stories found after filtering." });
+		}
+
+		// 3. Editing Phase
+		console.log("\n--- PHASE 3: EDITING & ENHANCEMENT ---");
+		const { links: editedLinks } = await runEditor({ stories });
+		
+		let podcastProduced = false;
+		let audioUrl = "";
+
+		if (editedLinks && editedLinks.length > 0) {
+			// 4. Podcast Script Phase
+			console.log("\n--- PHASE 4: PODCAST SCRIPT GENERATION ---");
+			const { transcript } = await runPodcastEditor();
+
+			if (transcript) {
+				// 5. Podcast Voice Phase
+				console.log("\n--- PHASE 5: PODCAST VOICE PRODUCTION ---");
+				const voiceResult = await runPodcastVoice({ transcript });
+
+				if (voiceResult.success && voiceResult.audioUrl) {
+					podcastProduced = true;
+					audioUrl = voiceResult.audioUrl;
+					console.log(`\n✅ Podcast produced successfully: ${voiceResult.audioUrl}`);
+
+					// 6. Notification Phase
+					if (process.env.SLACK_WEBHOOK_URL) {
+						console.log("Publishing to Slack...");
+						await postPodcastToSlack(
+							process.env.SLACK_WEBHOOK_URL,
+							transcript as any,
+							voiceResult.audioUrl
+						);
+					}
+				}
+			}
+		}
+
+		return NextResponse.json({
+			success: true,
+			message: "Pipeline completed successfully!",
+			results: {
+				articlesFound: articles.length,
+				storiesCurated: stories.length,
+				podcastProduced,
+				audioUrl
+			}
+		});
+	} catch (error) {
+		console.error("\n❌ Pipeline failed with error:", error);
+		return NextResponse.json({
+			success: false,
+			message: error instanceof Error ? error.message : "Unknown error occurred"
+		}, { status: 500 });
+	}
+}
+
+// Also allow POST
+export async function POST(request: Request) {
+	return GET(request);
+}

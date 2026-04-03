@@ -1,0 +1,57 @@
+{
+	"name": "newsroom",
+	"description": "A newsroom of agents that go get AI agent news",
+	"version": "0.0.1",
+	"main": "index.js",
+	"scripts": {
+		"dev": "next dev",
+		"build": "next build",
+		"start": "next start",
+		"newsroom": "npx tsx src/index.ts"
+	},
+	"keywords": [
+		"agent",
+		"ai",
+		"ai agent",
+		"vercel",
+		"bun",
+		"newsroom",
+		"cloudflare",
+		"gemini"
+	],
+	"devDependencies": {
+		"@ai-sdk/openai": "^1.3.24",
+		"@tailwindcss/postcss": "^4.2.2",
+		"@types/bun": "latest",
+		"@types/node": "^22.13.10",
+		"@types/react": "19.2.14",
+		"ai": "^6.0.143",
+		"tsx": "^4.21.0",
+		"typescript": "^5.8.2"
+	},
+	"peerDependencies": {
+		"typescript": "^5.0.0"
+	},
+	"dependencies": {
+		"@ai-sdk/google": "^3.0.55",
+		"@aws-sdk/client-s3": "^3.1023.0",
+		"@mendable/firecrawl-js": "^1.24.0",
+		"@neondatabase/serverless": "^1.0.2",
+		"@upstash/redis": "^1.34.7",
+		"autoprefixer": "^10.4.27",
+		"bun-types": "^1.2.9",
+		"clsx": "^2.1.1",
+		"dotenv": "^16.4.7",
+		"framer-motion": "^12.38.0",
+		"lucide-react": "^1.7.0",
+		"next": "^16.2.2",
+		"next-themes": "^0.4.6",
+		"postcss": "^8.5.8",
+		"react": "^19.2.4",
+		"react-dom": "^19.2.4",
+		"tailwind-merge": "^3.5.0",
+		"tailwindcss": "^4.2.2",
+		"zod": "^3.24.2"
+	},
+	"module": "index.ts"
+}
