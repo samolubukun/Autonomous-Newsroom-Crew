@@ -1,6 +1,6 @@
 {
-	"name": "newsroom",
-	"description": "A newsroom of agents that go get AI agent news",
+	"name": "autonomous-newsroom-crew",
+	"description": "AI Newsroom: A fully automated, 6-agent content generation crew targeting AI Agents, LLM research, and industry breakthroughs.",
 	"version": "0.0.1",
 	"main": "index.js",
 	"scripts": {
