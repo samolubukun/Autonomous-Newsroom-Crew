@@ -116,13 +116,15 @@ This keeps the same API route compatible with different hosting and cron provide
 
 ### GitHub Actions Scheduler (every day at 08:00 UTC)
 
-This repository includes `.github/workflows/scheduled-pipeline.yml` so the pipeline can be triggered automatically on any hosting provider.
+This repository includes `.github/workflows/scheduled-pipeline.yml` and runs the newsroom pipeline directly inside GitHub Actions, avoiding deployment request timeouts.
 
 1. Add these repository secrets in GitHub:
-   - `PIPELINE_URL` = your deployed endpoint (example: `https://your-domain.com/api/run`)
-   - `CRON_SECRET` = the same secret configured in your deployment environment
+   - Required: `GOOGLE_GENERATIVE_AI_API_KEY`, `DEEPGRAM_API_KEY`, `DATABASE_URL`
+   - Usually required for full output: `DO_SPACES_KEY`, `DO_SPACES_SECRET`, `DO_SPACES_ENDPOINT`, `DO_SPACES_BUCKET`
+   - Optional depending on setup: `FIRECRAWL_API_KEY`, `CRAWL4AI_API_URL`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `SLACK_WEBHOOK_URL`
 2. The workflow runs every day at `08:00 UTC` (`0 8 * * *`) and can also be run manually from the Actions tab.
-3. If you want to use Vercel Cron instead, add this block to `vercel.json`:
+3. This workflow uses GitHub Actions concurrency control to prevent overlapping scheduled runs.
+4. If you want to use Vercel Cron instead, add this block to `vercel.json`:
    ```json
    {
      "crons": [
@@ -133,8 +135,8 @@ This repository includes `.github/workflows/scheduled-pipeline.yml` so the pipel
      ]
    }
    ```
-4. This repository currently relies on GitHub Actions scheduling (Vercel Cron removed) to avoid duplicate triggers.
-5. The workflow includes healthcheck/log steps that print run metadata, HTTP status, response body, and validates `success: true`.
+5. This repository currently relies on GitHub Actions scheduling (Vercel Cron removed) to avoid duplicate triggers.
+6. The workflow includes healthcheck/log steps that print run metadata and UTC start/finish timestamps.
 
 ## License
 This project is securely licensed under the MIT License.
