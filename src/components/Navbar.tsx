@@ -8,10 +8,11 @@ import { useRouter } from "next/navigation";
 
 export function Navbar() {
 	const [isRunning, setIsRunning] = useState(false);
+	const pipelineTriggerEnabled = false;
 	const router = useRouter();
 
 	const handleRunPipeline = async () => {
-		if (isRunning) return;
+		if (isRunning || !pipelineTriggerEnabled) return;
 		
 		setIsRunning(true);
 		console.log("🚀 Starting Pipeline via Dashboard Trigger...");
@@ -54,27 +55,34 @@ export function Navbar() {
 
 				{/* Actions Section */}
 				<div className="flex items-center gap-4 w-full md:w-auto justify-center md:justify-end">
-					<button 
-						onClick={handleRunPipeline}
-						disabled={isRunning}
-						className={`group relative flex items-center justify-center gap-2.5 px-6 md:px-8 py-2.5 md:py-3 w-full md:w-auto rounded-full font-extrabold transition-all duration-300 shadow-[0_0_20px_rgba(255,255,255,0.15)] overflow-hidden border
-							${isRunning 
-								? "bg-zinc-800 text-purple-400 border-zinc-700 cursor-wait animate-pulse" 
+					<div className="relative w-full md:w-auto">
+						<button 
+							onClick={handleRunPipeline}
+							disabled={!pipelineTriggerEnabled || isRunning}
+							className={`group relative flex items-center justify-center gap-2.5 px-6 md:px-8 py-2.5 md:py-3 w-full md:w-auto rounded-full font-extrabold transition-all duration-300 shadow-[0_0_20px_rgba(255,255,255,0.15)] overflow-hidden border
+							${!pipelineTriggerEnabled
+								? "bg-zinc-800/90 text-zinc-400 border-zinc-700 cursor-not-allowed"
+								: isRunning
+								? "bg-zinc-800 text-purple-400 border-zinc-700 cursor-wait"
 								: "bg-white text-zinc-900 border-white hover:-translate-y-0.5 hover:scale-[1.02] active:scale-[0.98] hover:shadow-[0_10px_30px_rgba(255,255,255,0.3)]"
 							}`}
-					>
-						<div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+						>
+
+							<div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 						
-						{isRunning ? (
-							<Loader2 size={16} className="relative z-10 animate-spin text-purple-400" />
-						) : (
-							<Zap size={16} className="relative z-10 text-zinc-900 group-hover:text-purple-600 group-hover:fill-purple-600 transition-all duration-300 drop-shadow-sm" />
-						)}
-						
-						<span className="relative z-10 transition-colors duration-300 uppercase tracking-[0.2em] text-xs md:text-sm pr-0.5">
-							{isRunning ? "Processing..." : "Run Pipeline"}
-						</span>
-					</button>
+							{!pipelineTriggerEnabled ? (
+								<Zap size={16} className="relative z-10 text-zinc-400" />
+							) : isRunning ? (
+								<Loader2 size={16} className="relative z-10 animate-spin text-purple-400" />
+							) : (
+								<Zap size={16} className="relative z-10 text-zinc-900 group-hover:text-purple-600 group-hover:fill-purple-600 transition-all duration-300 drop-shadow-sm" />
+							)}
+							
+							<span className="relative z-10 transition-colors duration-300 uppercase tracking-[0.2em] text-xs md:text-sm pr-0.5">
+								{isRunning ? "Processing..." : "Run Pipeline"}
+							</span>
+						</button>
+					</div>
 				</div>
 			</nav>
 		</div>

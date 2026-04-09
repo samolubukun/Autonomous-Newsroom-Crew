@@ -290,10 +290,10 @@ export function DashboardClient({ published, latestPodcast }: { published: any[]
             The Engine Room
           </div>
           <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-zinc-900 dark:text-white">
-            5 Agents. <span className="text-zinc-400 dark:text-zinc-500">1 Goal.</span>
+            6 Agents. <span className="text-zinc-400 dark:text-zinc-500">1 Goal.</span>
           </h2>
           <p className="text-zinc-600 dark:text-zinc-400 max-w-xl mx-auto text-lg">
-            A fully autonomous relay team working in perfect synchronization to turn the world's raw data into your daily audio briefing.
+            By scouring the web for raw data on emerging AI technologies and flawlessly relaying it through a highly specialized crew of agents, it automatically publishes curated daily news roundups alongside ultra-realistic auto-generated podcasts.
           </p>
         </div>
 
