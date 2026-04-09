@@ -139,4 +139,4 @@ This repository includes `.github/workflows/scheduled-pipeline.yml` and runs the
 6. The workflow includes healthcheck/log steps that print run metadata and UTC start/finish timestamps.
 
 ## License
-This project is securely licensed under the MIT License.
+This project is securely licensed under the MIT License. 
