@@ -1,0 +1,47 @@
+name: Scheduled Pipeline Trigger
+
+on:
+  schedule:
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Healthcheck and runtime context
+        run: |
+          echo "Workflow: $GITHUB_WORKFLOW"
+          echo "Run ID: $GITHUB_RUN_ID"
+          echo "Repository: $GITHUB_REPOSITORY"
+          echo "Started at (UTC): $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+
+      - name: Trigger deployed /api/run endpoint
+        env:
+          PIPELINE_URL: ${{ secrets.PIPELINE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$PIPELINE_URL" ]; then
+            echo "PIPELINE_URL secret is required (for example: https://your-domain.com/api/run)"
+            exit 1
+          fi
+
+          response_file="response.json"
+          http_code=$(curl -sS -o "$response_file" -w "%{http_code}" \
+            -X POST "$PIPELINE_URL" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            --data "{}")
+
+          echo "HTTP status: $http_code"
+          cat "$response_file"
+
+          if [ "$http_code" -lt 200 ] || [ "$http_code" -ge 300 ]; then
+            echo "Pipeline trigger failed"
+            exit 1
+          fi
+
+      - name: Verify API success field and finish logs
+        run: |
+          node -e "const fs=require('fs'); const p='response.json'; const raw=fs.readFileSync(p,'utf8'); let json; try { json=JSON.parse(raw); } catch { console.error('response.json is not valid JSON'); process.exit(1); } if (json.success !== true) { console.error('API responded with success !== true'); console.error(raw); process.exit(1); } console.log('API success field is true');"
+          echo "Finished at (UTC): $(date -u +'%Y-%m-%dT%H:%M:%SZ')"

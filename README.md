@@ -99,5 +99,42 @@ Once the server is running, the **AI Newsroom Dashboard** gives you immediate fe
 
 Ensure all your `.env` secrets are configured in your Vercel or deployment dashboard before committing. Remember to set the Cron Jobs correctly if you wish the crew to operate fully autonomously daily without requiring manual triggering (the `/api/run` route is already exposed for cron services).
 
+### Daily Scheduling Across Platforms
+
+The pipeline endpoint is `GET/POST /api/run`.
+
+To keep scheduled runs private across Vercel, Netlify, Render, Railway, Pipedream, Pipedream-like cron services, or custom schedulers:
+
+1. Set `CRON_SECRET` in your deployment environment variables.
+2. Configure your scheduler to call `/api/run` once daily and pass one of these auth options:
+   - `Authorization: Bearer <CRON_SECRET>` header (recommended)
+   - `x-cron-secret: <CRON_SECRET>` header
+   - `?secret=<CRON_SECRET>` query parameter
+   - For `POST` JSON calls: `{ "secret": "<CRON_SECRET>" }`
+
+This keeps the same API route compatible with different hosting and cron providers.
+
+### GitHub Actions Scheduler (every day at 08:00 UTC)
+
+This repository includes `.github/workflows/scheduled-pipeline.yml` so the pipeline can be triggered automatically on any hosting provider.
+
+1. Add these repository secrets in GitHub:
+   - `PIPELINE_URL` = your deployed endpoint (example: `https://your-domain.com/api/run`)
+   - `CRON_SECRET` = the same secret configured in your deployment environment
+2. The workflow runs every day at `08:00 UTC` (`0 8 * * *`) and can also be run manually from the Actions tab.
+3. If you want to use Vercel Cron instead, add this block to `vercel.json`:
+   ```json
+   {
+     "crons": [
+       {
+         "path": "/api/run",
+         "schedule": "0 8 * * *"
+       }
+     ]
+   }
+   ```
+4. This repository currently relies on GitHub Actions scheduling (Vercel Cron removed) to avoid duplicate triggers.
+5. The workflow includes healthcheck/log steps that print run metadata, HTTP status, response body, and validates `success: true`.
+
 ## License
 This project is securely licensed under the MIT License.
