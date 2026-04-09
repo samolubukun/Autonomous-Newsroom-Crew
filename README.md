@@ -83,6 +83,13 @@ Follow these standard instructions to hook up the engine locally.
    ```
    *This will execute the full 6-agent news crew from digital research to high-fidelity audio generation.*
 
+7. **Hard Reset Pipeline Run (clear cache + rerun):**
+   To clear same-day cached research and published outputs, then run fresh:
+   ```bash
+   npm run newsroom:hard-reset
+   ```
+   This runs `npm run clear-db` first, then `npm run newsroom`.
+
 
 ---
 

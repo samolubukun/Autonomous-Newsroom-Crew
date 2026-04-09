@@ -7,7 +7,9 @@
 		"dev": "next dev",
 		"build": "next build",
 		"start": "next start",
-		"newsroom": "npx tsx src/index.ts"
+		"newsroom": "npx tsx src/index.ts",
+		"clear-db": "npx tsx src/scripts/clear-db.ts",
+		"newsroom:hard-reset": "npm run clear-db && npm run newsroom"
 	},
 	"keywords": [
 		"agent",
