@@ -64,6 +64,9 @@ IMPORTANT RULES FOR SCRIPTING:
 - Do not use overly formal transitions like "Now moving on to our next story". Instead, use natural topical pivots.
 - Cover stories in this exact sequence: LEAD feature first, then ANALYTICAL reports, then BRIEFS.
 - Keep transitions clear so listeners can follow the editorial priority order.
+- You must cover every story exactly once. Do not skip any item from the list.
+- Depth by tier: spend the most time on LEAD, solid depth on REPORT, then concise pass-through for each BRIEF.
+- For BRIEFS, still mention each one explicitly with at least one concrete detail per brief.
 
 For each story, spend a robust amount of time (200-300 words combined) discussing it naturally.
 End the podcast with a crisp, efficient sign-off.

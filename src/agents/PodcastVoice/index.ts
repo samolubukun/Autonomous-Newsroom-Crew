@@ -73,22 +73,43 @@ function chunkDialogue(dialogue: PodcastTranscript["dialogue"], maxLen = CHUNK_S
  */
 async function generateAudioChunk(chunk: DialogueChunk): Promise<ArrayBuffer> {
 	const url = `https://api.deepgram.com/v1/speak?model=${VOICE_MAP[chunk.speaker]}`;
-	
-	const response = await fetch(url, {
-		method: "POST",
-		headers: {
-			Authorization: `Token ${DEEPGRAM_API_KEY}`,
-			"Content-Type": "application/json",
-		},
-		body: JSON.stringify({ text: chunk.text }),
-	});
 
-	if (!response.ok) {
-		const errorText = await response.text();
-		throw new Error(`Deepgram API error: ${response.status} ${errorText}`);
+	const maxAttempts = 5;
+	for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+		const controller = new AbortController();
+		const timeout = setTimeout(() => controller.abort(), 45000);
+
+		try {
+			const response = await fetch(url, {
+				method: "POST",
+				headers: {
+					Authorization: `Token ${DEEPGRAM_API_KEY}`,
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ text: chunk.text }),
+				signal: controller.signal,
+			});
+
+			if (!response.ok) {
+				const errorText = await response.text();
+				throw new Error(`Deepgram API error: ${response.status} ${errorText}`);
+			}
+
+			return response.arrayBuffer();
+		} catch (error) {
+			if (attempt === maxAttempts) {
+				throw error;
+			}
+
+			const waitMs = 1000 * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 350);
+			console.warn(`PodcastVoice: Chunk request failed (attempt ${attempt}/${maxAttempts}), retrying in ${waitMs}ms...`, error);
+			await new Promise((resolve) => setTimeout(resolve, waitMs));
+		} finally {
+			clearTimeout(timeout);
+		}
 	}
 
-	return response.arrayBuffer();
+	throw new Error("Deepgram chunk generation failed after retries");
 }
 
 /**
@@ -107,7 +128,7 @@ async function generateAudio(dialogue: PodcastTranscript["dialogue"]): Promise<A
 
 		// Small delay between Deepgram requests to avoid rate limits
 		if (i < chunks.length - 1) {
-			await new Promise(r => setTimeout(r, 600));
+			await new Promise(r => setTimeout(r, 900));
 		}
 	}
 

@@ -1,4 +1,5 @@
-import { generateText } from "ai";
+import { generateObject, generateText } from "ai";
+import { z } from "zod";
 import { getAiModel } from "../../lib/ai";
 import { getPublishedStories, type Story } from "../../lib/data/stories";
 import { sql } from "../../lib/db";
@@ -39,16 +40,16 @@ export async function runReporter() {
 		}
 
 		// Write Analytical Reports (~500 words)
-		for (const story of reportStories) {
+		const reportsToWrite = reportStories.filter((story) => {
 			if (story.body && story.body.length > 200) {
 				console.log(`Reporter: Report already has body, skipping — "${story.headline}"`);
-				continue;
+				return false;
 			}
-			await writeAnalyticalReport(story);
-			
-			// Rate limit protection for free tier
-			console.log("Reporter: Buffering for 10s to respect AI rate limits...");
-			await new Promise(resolve => setTimeout(resolve, 10000));
+			return true;
+		});
+
+		if (reportsToWrite.length > 0) {
+			await writeAnalyticalReportsBatched(reportsToWrite);
 		}
 
 		console.log("Reporter: All reporting complete.");
@@ -147,6 +148,99 @@ Write the report now:`,
 
 	await updateStoryBody(story.link, text);
 	console.log(`Reporter: ✅ Analytical Report written (${text.length} chars) — "${story.headline}"`);
+}
+
+function chunkStories<T>(items: T[], chunkSize: number): T[][] {
+	const chunks: T[][] = [];
+	for (let i = 0; i < items.length; i += chunkSize) {
+		chunks.push(items.slice(i, i + chunkSize));
+	}
+	return chunks;
+}
+
+async function getRawContentForStory(story: Story) {
+	let rawContent = "No full content available.";
+	try {
+		const scrapeResult = await scrapeUrl(story.link);
+		if (scrapeResult.success && scrapeResult.markdown) {
+			rawContent = scrapeResult.markdown;
+		}
+	} catch (error) {
+		console.log(`Reporter: Scraping failed for report. Error: ${error}`);
+	}
+
+	return rawContent.slice(0, 7000);
+}
+
+async function writeAnalyticalReportsBatched(stories: Story[]) {
+	const maxBatches = 3;
+	const batchCount = Math.min(maxBatches, Math.max(1, stories.length));
+	const batchSize = Math.ceil(stories.length / batchCount);
+	const batches = chunkStories(stories, batchSize);
+
+	console.log(`Reporter: Writing ${stories.length} analytical reports in ${batches.length} AI call(s).`);
+
+	for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+		const batch = batches[batchIndex];
+		console.log(`Reporter: ✍️  Batch ${batchIndex + 1}/${batches.length} — ${batch.length} report(s)`);
+
+		const batchWithContent = await Promise.all(
+			batch.map(async (story, index) => ({
+				index,
+				story,
+				rawContent: await getRawContentForStory(story),
+			}))
+		);
+
+		const { object } = await generateObject({
+			model: getAiModel(),
+			schema: z.object({
+				reports: z.array(
+					z.object({
+						index: z.number().int().nonnegative(),
+						body: z.string(),
+					})
+				),
+			}),
+			prompt: `You are a technology analyst and journalist at a respected AI industry publication.
+Write one analytical report for each story below.
+
+OUTPUT RULES:
+- Return JSON matching the schema.
+- Return one report per input story using the same 0-based index.
+- Each report must be 400-600 words.
+- Tone: sharp, direct, and confident (Bloomberg/Reuters style).
+- Structure each report as: What happened -> Why it matters -> One key implication to watch.
+- Use markdown with **bold** for key entities and figures.
+- Do NOT include bylines.
+
+STORIES:
+${batchWithContent
+	.map(
+		(item) => `INDEX: ${item.index}
+HEADLINE: ${item.story.headline}
+SUMMARY: ${item.story.summary}
+SOURCE: ${item.story.source}
+RAW SOURCE MATERIAL:
+---
+${item.rawContent}
+---`
+	)
+	.join("\n\n")}
+`,
+		});
+
+		const updates = object.reports || [];
+		for (const update of updates) {
+			const target = batchWithContent[update.index];
+			if (!target || !update.body || update.body.trim().length < 200) {
+				continue;
+			}
+
+			await updateStoryBody(target.story.link, update.body);
+			console.log(`Reporter: ✅ Analytical Report written (${update.body.length} chars) — "${target.story.headline}"`);
+		}
+	}
 }
 
 async function updateStoryBody(link: string, body: string) {
