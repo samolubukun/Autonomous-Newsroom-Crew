@@ -1,11 +1,20 @@
 import type { PodcastTranscript } from "./data/podcast";
 
+type SlackStory = {
+	headline?: string;
+	link?: string;
+};
+
+type SlackPodcastTranscript = PodcastTranscript & {
+	stories?: SlackStory[];
+};
+
 /**
  * Posts a podcast update to Slack with the audio link and story list
  */
 export async function postPodcastToSlack(
 	webhookUrl: string,
-	podcast: PodcastTranscript,
+	podcast: SlackPodcastTranscript,
 	audioUrl?: string,
 ): Promise<void> {
 	const audioLink = audioUrl || podcast.audio_url;
@@ -65,6 +74,10 @@ export async function postPodcastToSlack(
 	// Add story sections if they exist
 	if (podcast.stories && podcast.stories.length > 0) {
 		for (const story of podcast.stories) {
+			if (!story.headline || !story.link) {
+				continue;
+			}
+
 			message.blocks.push({
 				type: "section",
 				text: {

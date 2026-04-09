@@ -10,10 +10,42 @@ import { postPodcastToSlack } from "../../../lib/notifications";
 export const dynamic = "force-dynamic";
 export const maxDuration = 300; // 5 minutes (Vercel Pro)
 
-export async function GET(request: Request) {
-	// Optional: Check for auth header if you want to keep cron private
+async function isCronAuthorized(request: Request) {
+	const configuredSecret = process.env.CRON_SECRET;
+
+	if (!configuredSecret) {
+		return true;
+	}
+
 	const authHeader = request.headers.get("authorization");
-	if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+	const headerSecret = request.headers.get("x-cron-secret");
+	const url = new URL(request.url);
+	const querySecret = url.searchParams.get("secret") ?? url.searchParams.get("cron_secret");
+
+	if (authHeader === `Bearer ${configuredSecret}` || headerSecret === configuredSecret || querySecret === configuredSecret) {
+		return true;
+	}
+
+	if (request.method === "POST") {
+		const contentType = request.headers.get("content-type") || "";
+		if (contentType.includes("application/json")) {
+			try {
+				const body = await request.clone().json();
+				if (body?.secret === configuredSecret || body?.cronSecret === configuredSecret) {
+					return true;
+				}
+			} catch {
+				return false;
+			}
+		}
+	}
+
+	return false;
+}
+
+async function runPipeline(request: Request) {
+	const authorized = await isCronAuthorized(request);
+	if (!authorized) {
 		return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
 	}
 
@@ -94,7 +126,11 @@ export async function GET(request: Request) {
 	}
 }
 
+export async function GET(request: Request) {
+	return runPipeline(request);
+}
+
 // Also allow POST
 export async function POST(request: Request) {
-	return GET(request);
+	return runPipeline(request);
 }
