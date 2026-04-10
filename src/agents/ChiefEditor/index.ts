@@ -12,7 +12,7 @@ const BatchFilterSchema = z.object({
 			isDuplicate: z.boolean(),
 			confidence: z.number().min(0).max(1),
 			reason: z.string(),
-			priority: z.number().min(1).max(10).describe("Editorial importance score 1-10. 9-10 = front-page lead, 7-8 = analytical report, below 7 = brief digest"),
+			priority: z.number().min(0).max(10).describe("Editorial importance score 0-10. 9-10 = front-page lead, 7-8 = analytical report, below 7 = brief digest. Use 0 for duplicates."),
 			cleanSource: z.string().describe("A clean, professional name for the publisher (e.g., 'TechCrunch', 'The Verge', 'AI Secret')"),
 		})
 	),
