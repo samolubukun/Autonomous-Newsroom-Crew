@@ -475,7 +475,7 @@ export function DashboardClient({ published, latestPodcast }: { published: any[]
                         <div key={story.link} className="group p-5 rounded-2xl border border-zinc-200/60 dark:border-white/10 bg-white dark:bg-white/[0.02] hover:bg-zinc-50/50 dark:hover:bg-white/[0.04] transition-all duration-300">
                           <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 block mb-2">{cleanSource(story.source)}</span>
                           <h4 className="font-semibold text-sm leading-snug text-black dark:text-white group-hover:text-purple-700 dark:group-hover:text-purple-400 transition-colors mb-2">{story.headline}</h4>
-                          <p className="text-zinc-500 text-xs leading-relaxed line-clamp-2">{story.summary}</p>
+                          <p className="text-zinc-500 text-xs leading-relaxed">{story.summary}</p>
                           <a href={story.link} target="_blank" rel="noopener noreferrer"
                             className="mt-3 flex items-center gap-1 text-[10px] font-bold text-zinc-400 hover:text-zinc-700 dark:hover:text-white uppercase tracking-wider transition-colors">
                             Source <ExternalLinkIcon size={10} />
