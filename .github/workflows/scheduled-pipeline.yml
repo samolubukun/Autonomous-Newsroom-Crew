@@ -1,8 +1,9 @@
 name: Scheduled Pipeline Trigger
 
 on:
-  schedule:
-    - cron: "0 8 * * *"
+  # Auto-run disabled — uncomment to re-enable daily at 08:00 UTC
+  # schedule:
+  #   - cron: "0 8 * * *"
   workflow_dispatch:
 
 concurrency:
