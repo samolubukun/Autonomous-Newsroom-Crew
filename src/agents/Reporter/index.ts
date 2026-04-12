@@ -78,7 +78,7 @@ async function writeLeadFeature(story: Story) {
 	const { text } = await generateText({
 		model: getAiModel(),
 		prompt: `You are a senior investigative journalist at a world-class technology newsroom.
-Your task is to write a deep-dive, high-fidelity feature article based on the raw source material provided.
+Your task is to write a deep-dive, high-fidelity feature article based on the raw source material provided. NEVER use emojis (😀, 🚀, 📰, etc.) in any article text. Use plain text only.
 
 STORY HEADLINE: ${story.headline}
 STORY SUMMARY: ${story.summary}
@@ -124,7 +124,7 @@ async function writeAnalyticalReport(story: Story) {
 	const { text } = await generateText({
 		model: getAiModel(),
 		prompt: `You are a technology analyst and journalist at a respected AI industry publication.
-Write a sharp, data-driven analytical report based on the raw source material.
+Write a sharp, data-driven analytical report based on the raw source material. NEVER use emojis (😀, 🚀, 📰, etc.) in any report text. Use plain text only.
 
 STORY HEADLINE: ${story.headline}
 STORY SUMMARY: ${story.summary}
@@ -203,7 +203,7 @@ async function writeAnalyticalReportsBatched(stories: Story[]) {
 				),
 			}),
 			prompt: `You are a technology analyst and journalist at a respected AI industry publication.
-Write one analytical report for each story below.
+Write one analytical report for each story below. NEVER use emojis (😀, 🚀, 📰, etc.) in any report text. Use plain text only.
 
 OUTPUT RULES:
 - Return JSON matching the schema.

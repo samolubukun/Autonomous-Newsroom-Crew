@@ -48,7 +48,7 @@ export async function runEditor(options: { stories?: Story[] } = {}) {
 		const { object } = await generateObject({
 			model: getAiModel(),
 			schema: BatchEnhancedSchema,
-			prompt: `You are a senior AI news editor. Rewrite and enhance each of the following stories to be professional, engaging, and well-structured. 
+			prompt: `You are a senior AI news editor. Rewrite and enhance each of the following stories to be professional, engaging, and well-structured. NEVER use emojis (😀, 🚀, 📰, etc.) in any headline, summary, or body. Use plain text only.
 
 			For each story:
 			1. Write a catchy headline.

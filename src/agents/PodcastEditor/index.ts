@@ -67,6 +67,7 @@ IMPORTANT RULES FOR SCRIPTING:
 - You must cover every story exactly once. Do not skip any item from the list.
 - Depth by tier: spend the most time on LEAD, solid depth on REPORT, then concise pass-through for each BRIEF.
 - For BRIEFS, still mention each one explicitly with at least one concrete detail per brief.
+- NEVER use emojis (😀, 🚀, 📰, etc.) in any dialogue text. Use plain text only.
 
 For each story, spend a robust amount of time (200-300 words combined) discussing it naturally.
 End the podcast with a crisp, efficient sign-off.

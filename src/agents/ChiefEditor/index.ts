@@ -75,8 +75,9 @@ RULES:
    - 7-9: CORE REPORTS. These are the supporting analytical pieces. Limit these to the top 2-3 strongest stories.
    - 1-6: BRIEFS. All other relevant news. These will be kept as short summaries.
 4. If no story is truly groundbreaking, still pick the best one as priority 9 or 10 to lead the edition.
-7.5. For each article, identify the "cleanSource"—a professional name for the publisher (e.g., 'The Verge' instead of 'https://theverge.com/feed').
-5. Return one result per article, using its 0-based index.
+5. For each article, identify the "cleanSource"—a professional name for the publisher (e.g., 'The Verge' instead of 'https://theverge.com/feed').
+6. NEVER use emojis (😀, 🚀, 📰, etc.) in any headline or text. Use plain text only.
+7. Return one result per article, using its 0-based index.
 
 CANDIDATE ARTICLES:
 ${articlesContext}
