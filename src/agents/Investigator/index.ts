@@ -88,6 +88,12 @@ export async function runInvestigator(options: { dynamicSources?: string[] } = {
 
 	// 3. ONE AI call to extract all stories from all sources
 	console.log("Investigator: Extracting stories from all sources (1 AI call)...");
+	const today = new Date();
+	const fiveDaysAgo = new Date(today);
+	fiveDaysAgo.setDate(today.getDate() - 5);
+	const todayStr = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+	const fiveDaysAgoStr = fiveDaysAgo.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
 	let articles: Article[] = [];
 
 	try {
@@ -96,7 +102,7 @@ export async function runInvestigator(options: { dynamicSources?: string[] } = {
 			schema: StoriesSchema,
 			prompt: `You are an AI news investigator. Extract all unique news stories about AI, LLMs, AI agents, and AI industry developments from the following content scraped from multiple websites. For each story, include which source it came from. NEVER use emojis (😀, 🚀, 📰, etc.) in any headline or summary. Use plain text only.
 
-IMPORTANT: Only extract stories that are RECENT - from today (April 14, 2026) or the past few days (no earlier than April 10, 2026). Ignore any story that is older than 5 days. Focus on fresh news only.\n\n${combinedContent}`,
+IMPORTANT: Only extract stories that are RECENT - from today (${todayStr}) or the past few days (no earlier than ${fiveDaysAgoStr}). Ignore any story that is older than 5 days. Focus on fresh news only.\n\n${combinedContent}`,
 		});
 
 		articles = (object.stories || []).map((s) => ({

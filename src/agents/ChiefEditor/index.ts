@@ -62,6 +62,12 @@ export async function runChiefEditor(options: { articles?: Article[] } = {}) {
 			: "None";
 
 		// ONE call — batch relevance + duplicate check + priority ranking for all articles
+		const today = new Date();
+		const fiveDaysAgo = new Date(today);
+		fiveDaysAgo.setDate(today.getDate() - 5);
+		const todayStr = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+		const fiveDaysAgoStr = fiveDaysAgo.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
 		const { object } = await generateObject({
 			model: getAiModel(),
 			schema: BatchFilterSchema,
@@ -69,16 +75,16 @@ export async function runChiefEditor(options: { articles?: Article[] } = {}) {
 
 RULES:
 1. isRelevant=true only if the article is about: LLMs, AI Agents, AI research breakthroughs, significant AI industry news, or AI ethics/policy. Be extremely selective.
-2. ONLY include stories from TODAY (April 14, 2026) or the past few days (no earlier than April 10, 2026). Reject any story older than 5 days. Old stories like the $122B OpenAI funding from March should be marked as not relevant.
+2. ONLY include stories from TODAY (${todayStr}) or the past few days (no earlier than ${fiveDaysAgoStr}). Reject any story older than 5 days. Focus on fresh news only.
 3. isDuplicate=true if the article covers the same core story as one of the PUBLISHED articles below.
-3. Assign a priority score (1-10) to each relevant article based on its editorial weight:
+4. Assign a priority score (1-10) to each relevant article based on its editorial weight:
    - 10: MANDATORY LEAD. Pick exactly ONE story to be today's Investigative Feature. Choose the one with the most global or technical impact.
    - 7-9: CORE REPORTS. These are the supporting analytical pieces. Limit these to the top 2-3 strongest stories.
    - 1-6: BRIEFS. All other relevant news. These will be kept as short summaries.
-4. If no story is truly groundbreaking, still pick the best one as priority 9 or 10 to lead the edition.
-5. For each article, identify the "cleanSource"—a professional name for the publisher (e.g., 'The Verge' instead of 'https://theverge.com/feed').
-6. NEVER use emojis (😀, 🚀, 📰, etc.) in any headline or text. Use plain text only.
-7. Return one result per article, using its 0-based index.
+5. If no story is truly groundbreaking, still pick the best one as priority 9 or 10 to lead the edition.
+6. For each article, identify the "cleanSource"—a professional name for the publisher (e.g., 'The Verge' instead of 'https://theverge.com/feed').
+7. NEVER use emojis (😀, 🚀, 📰, etc.) in any headline or text. Use plain text only.
+8. Return one result per article, using its 0-based index.
 
 CANDIDATE ARTICLES:
 ${articlesContext}
