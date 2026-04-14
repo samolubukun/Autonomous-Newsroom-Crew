@@ -25,6 +25,71 @@ const StoriesSchema = z.object({
 	),
 });
 
+const MONTHS: Record<string, number> = {
+	jan: 0,
+	feb: 1,
+	mar: 2,
+	apr: 3,
+	may: 4,
+	jun: 5,
+	jul: 6,
+	aug: 7,
+	sep: 8,
+	oct: 9,
+	nov: 10,
+	dec: 11,
+};
+
+function parseDateFromText(text: string): Date | null {
+	if (!text) return null;
+
+	const monthDayYear = text.match(/\b(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\.?\s+(\d{1,2}),\s*(\d{4})\b/i);
+	if (monthDayYear) {
+		const monthKey = monthDayYear[1].toLowerCase().slice(0, 3);
+		const month = MONTHS[monthKey];
+		const day = Number(monthDayYear[2]);
+		const year = Number(monthDayYear[3]);
+		if (month !== undefined) {
+			const d = new Date(year, month, day);
+			if (!isNaN(d.getTime())) return d;
+		}
+	}
+
+	const yearMonthDay = text.match(/\b(20\d{2})-(\d{1,2})-(\d{1,2})\b/);
+	if (yearMonthDay) {
+		const year = Number(yearMonthDay[1]);
+		const month = Number(yearMonthDay[2]) - 1;
+		const day = Number(yearMonthDay[3]);
+		const d = new Date(year, month, day);
+		if (!isNaN(d.getTime())) return d;
+	}
+
+	const dayMonthYear = text.match(/\b(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\.?\s+(20\d{2})\b/i);
+	if (dayMonthYear) {
+		const day = Number(dayMonthYear[1]);
+		const monthKey = dayMonthYear[2].toLowerCase().slice(0, 3);
+		const month = MONTHS[monthKey];
+		const year = Number(dayMonthYear[3]);
+		if (month !== undefined) {
+			const d = new Date(year, month, day);
+			if (!isNaN(d.getTime())) return d;
+		}
+	}
+
+	return null;
+}
+
+function toIsoDate(value: Date): string {
+	return value.toISOString().slice(0, 10);
+}
+
+function isWithinLastDays(date: Date, days: number): boolean {
+	const now = new Date();
+	const start = new Date(now);
+	start.setDate(now.getDate() - days);
+	return date >= start && date <= now;
+}
+
 /**
  * Investigator Agent
  *
@@ -112,6 +177,7 @@ IMPORTANT:
 			summary: s.summary,
 			link: s.link.startsWith("http") ? s.link : s.link,
 			source: s.source,
+			date_posted: s.date_posted,
 			date_found: new Date().toISOString(),
 		}));
 
@@ -121,6 +187,33 @@ IMPORTANT:
 	}
 
 	if (articles.length > 0) {
+		console.log(`Investigator: Enriching ${articles.length} stories with article-page publish dates...`);
+		const enriched = await Promise.all(
+			articles.map(async (article) => {
+				try {
+					const detail = await scrapeUrl(article.link, { formats: ["markdown"] });
+					const raw = typeof detail.markdown === "string" ? detail.markdown : "";
+					const parsed = parseDateFromText(raw.slice(0, 12000));
+					if (parsed) {
+						return { ...article, date_posted: toIsoDate(parsed) };
+					}
+				} catch (error) {
+					console.log(`Investigator: Date extraction failed for ${article.link}: ${error}`);
+				}
+				return article;
+			})
+		);
+
+		const recentOnly = enriched.filter((article) => {
+			if (!article.date_posted) return false;
+			const parsed = new Date(article.date_posted);
+			if (isNaN(parsed.getTime())) return false;
+			return isWithinLastDays(parsed, 5);
+		});
+
+		console.log(`Investigator: Kept ${recentOnly.length}/${enriched.length} stories from last 5 days with valid publish dates.`);
+		articles = recentOnly;
+
 		await research.save(articles, "investigator");
 		console.log(`Investigator: Saved ${articles.length} articles to DB.`);
 	}
