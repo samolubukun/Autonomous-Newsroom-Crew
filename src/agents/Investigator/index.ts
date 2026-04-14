@@ -102,7 +102,9 @@ export async function runInvestigator(options: { dynamicSources?: string[] } = {
 			schema: StoriesSchema,
 			prompt: `You are an AI news investigator. Extract all unique news stories about AI, LLMs, AI agents, and AI industry developments from the following content scraped from multiple websites. For each story, include which source it came from. NEVER use emojis (😀, 🚀, 📰, etc.) in any headline or summary. Use plain text only.
 
-IMPORTANT: Only extract stories that are RECENT - from today (${todayStr}) or the past few days (no earlier than ${fiveDaysAgoStr}). Ignore any story that is older than 5 days. Focus on fresh news only.\n\n${combinedContent}`,
+IMPORTANT: 
+1. Only extract stories that are RECENT - from today (${todayStr}) or the past few days (no earlier than ${fiveDaysAgoStr}). Ignore any story that is older than 5 days. Focus on fresh news only.
+2. When extracting, look for the article's publication date in the source content (e.g., "March 12, 2026" or "12/3/2026" or similar). If found, include it in the date_posted field. This helps filter out old stories.\n\n${combinedContent}`,
 		});
 
 		articles = (object.stories || []).map((s) => ({

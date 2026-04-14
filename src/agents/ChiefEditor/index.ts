@@ -51,7 +51,10 @@ export async function runChiefEditor(options: { articles?: Article[] } = {}) {
 
 		// Build context for the single batch call
 		const articlesContext = articles
-			.map((a, i) => `[${i}] "${a.headline}" (URL: ${a.link}) — Summary: ${a.summary}`)
+			.map((a, i) => {
+				const dateInfo = (a as any).date_posted ? ` (Posted: ${(a as any).date_posted})` : '';
+				return `[${i}] "${a.headline}" (URL: ${a.link}) — Summary: ${a.summary}${dateInfo}`;
+			})
 			.join("\n");
 
 		const publishedContext = publishedStories.length > 0
@@ -101,6 +104,16 @@ ${publishedContext}`,
 		// Sort by priority descending so we process the highest-impact story first
 		const sortedResults = [...object.results].sort((a, b) => b.priority - a.priority);
 
+		const isStoryOld = (datePosted: string | undefined): boolean => {
+			if (!datePosted) return false;
+			try {
+				const parsed = new Date(datePosted);
+				if (isNaN(parsed.getTime())) return false;
+				const diffDays = Math.floor((today.getTime() - parsed.getTime()) / (1000 * 60 * 60 * 24));
+				return diffDays > 5;
+			} catch { return false; }
+		};
+
 		for (const result of sortedResults) {
 			const article = articles[result.index];
 			if (!article) continue;
@@ -111,6 +124,10 @@ ${publishedContext}`,
 			}
 			if (result.isDuplicate) {
 				console.log(`Filter: Skipped (duplicate) — "${article.headline}"`);
+				continue;
+			}
+			if (isStoryOld((article as any).date_posted)) {
+				console.log(`Filter: Skipped (too old) — "${article.headline}" (date: ${(article as any).date_posted})`);
 				continue;
 			}
 
