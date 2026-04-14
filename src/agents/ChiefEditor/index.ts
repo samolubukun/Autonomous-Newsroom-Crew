@@ -104,14 +104,31 @@ ${publishedContext}`,
 		// Sort by priority descending so we process the highest-impact story first
 		const sortedResults = [...object.results].sort((a, b) => b.priority - a.priority);
 
-		const isStoryOld = (datePosted: string | undefined): boolean => {
-			if (!datePosted) return false;
-			try {
-				const parsed = new Date(datePosted);
-				if (isNaN(parsed.getTime())) return false;
-				const diffDays = Math.floor((today.getTime() - parsed.getTime()) / (1000 * 60 * 60 * 24));
-				return diffDays > 5;
-			} catch { return false; }
+		const parseDateFromLink = (link: string): Date | null => {
+			const match = link.match(/\/(20\d{2})\/(\d{1,2})\/(\d{1,2})\//);
+			if (!match) return null;
+			const year = Number(match[1]);
+			const month = Number(match[2]);
+			const day = Number(match[3]);
+			if (!year || !month || !day) return null;
+			const parsed = new Date(year, month - 1, day);
+			return isNaN(parsed.getTime()) ? null : parsed;
+		};
+
+		const getArticleDate = (article: Article): Date | null => {
+			const posted = (article as any).date_posted as string | undefined;
+			if (posted) {
+				const parsed = new Date(posted);
+				if (!isNaN(parsed.getTime())) return parsed;
+			}
+			return parseDateFromLink(article.link);
+		};
+
+		const isStoryOld = (article: Article): boolean => {
+			const parsed = getArticleDate(article);
+			if (!parsed) return false;
+			const diffDays = Math.floor((today.getTime() - parsed.getTime()) / (1000 * 60 * 60 * 24));
+			return diffDays > 5;
 		};
 
 		for (const result of sortedResults) {
@@ -126,8 +143,9 @@ ${publishedContext}`,
 				console.log(`Filter: Skipped (duplicate) — "${article.headline}"`);
 				continue;
 			}
-			if (isStoryOld((article as any).date_posted)) {
-				console.log(`Filter: Skipped (too old) — "${article.headline}" (date: ${(article as any).date_posted})`);
+			if (isStoryOld(article)) {
+				const articleDate = getArticleDate(article);
+				console.log(`Filter: Skipped (too old) — "${article.headline}" (date: ${articleDate ? articleDate.toISOString().slice(0, 10) : "unknown"})`);
 				continue;
 			}
 
