@@ -5,8 +5,8 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 const DEEPGRAM_API_KEY = process.env.DEEPGRAM_API_KEY || "";
 const VOICE_MAP = {
-	"Host": "aura-asteria-en",
-	"Expert": "aura-orion-en"
+	"Host": "aura-2-thalia-en",
+	"Expert": "aura-2-arcas-en"
 };
 const CHUNK_SIZE = 1950; // Deepgram free limit is 2000 chars per request
 
