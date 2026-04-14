@@ -69,7 +69,8 @@ export async function runChiefEditor(options: { articles?: Article[] } = {}) {
 
 RULES:
 1. isRelevant=true only if the article is about: LLMs, AI Agents, AI research breakthroughs, significant AI industry news, or AI ethics/policy. Be extremely selective.
-2. isDuplicate=true if the article covers the same core story as one of the PUBLISHED articles below.
+2. ONLY include stories from TODAY (April 14, 2026) or the past few days (no earlier than April 10, 2026). Reject any story older than 5 days. Old stories like the $122B OpenAI funding from March should be marked as not relevant.
+3. isDuplicate=true if the article covers the same core story as one of the PUBLISHED articles below.
 3. Assign a priority score (1-10) to each relevant article based on its editorial weight:
    - 10: MANDATORY LEAD. Pick exactly ONE story to be today's Investigative Feature. Choose the one with the most global or technical impact.
    - 7-9: CORE REPORTS. These are the supporting analytical pieces. Limit these to the top 2-3 strongest stories.

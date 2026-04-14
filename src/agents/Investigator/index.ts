@@ -94,7 +94,9 @@ export async function runInvestigator(options: { dynamicSources?: string[] } = {
 		const { object } = await generateObject({
 			model: getAiModel(),
 			schema: StoriesSchema,
-			prompt: `You are an AI news investigator. Extract all unique news stories about AI, LLMs, AI agents, and AI industry developments from the following content scraped from multiple websites. For each story, include which source it came from. NEVER use emojis (😀, 🚀, 📰, etc.) in any headline or summary. Use plain text only.\n\n${combinedContent}`,
+			prompt: `You are an AI news investigator. Extract all unique news stories about AI, LLMs, AI agents, and AI industry developments from the following content scraped from multiple websites. For each story, include which source it came from. NEVER use emojis (😀, 🚀, 📰, etc.) in any headline or summary. Use plain text only.
+
+IMPORTANT: Only extract stories that are RECENT - from today (April 14, 2026) or the past few days (no earlier than April 10, 2026). Ignore any story that is older than 5 days. Focus on fresh news only.\n\n${combinedContent}`,
 		});
 
 		articles = (object.stories || []).map((s) => ({
