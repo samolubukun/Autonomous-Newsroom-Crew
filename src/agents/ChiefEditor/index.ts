@@ -79,15 +79,16 @@ export async function runChiefEditor(options: { articles?: Article[] } = {}) {
 RULES:
 1. isRelevant=true only if the article is about: LLMs, AI Agents, AI research breakthroughs, significant AI industry news, or AI ethics/policy. Be extremely selective.
 2. ONLY include stories from TODAY (${todayStr}) or the past few days (no earlier than ${fiveDaysAgoStr}). Reject any story older than 5 days. Focus on fresh news only.
-3. isDuplicate=true if the article covers the same core story as one of the PUBLISHED articles below.
-4. Assign a priority score (1-10) to each relevant article based on its editorial weight:
+3. Freshness priority is strict: stories from today rank highest, then yesterday, then older (within 5 days). When choosing lead/report/brief, prioritize recency first and editorial weight second.
+4. isDuplicate=true if the article covers the same core story as one of the PUBLISHED articles below.
+5. Assign a priority score (1-10) to each relevant article based on its editorial weight:
    - 10: MANDATORY LEAD. Pick exactly ONE story to be today's Investigative Feature. Choose the one with the most global or technical impact.
    - 7-9: CORE REPORTS. These are the supporting analytical pieces. Limit these to the top 2-3 strongest stories.
    - 1-6: BRIEFS. All other relevant news. These will be kept as short summaries.
-5. If no story is truly groundbreaking, still pick the best one as priority 9 or 10 to lead the edition.
-6. For each article, identify the "cleanSource"—a professional name for the publisher (e.g., 'The Verge' instead of 'https://theverge.com/feed').
-7. NEVER use emojis (😀, 🚀, 📰, etc.) in any headline or text. Use plain text only.
-8. Return one result per article, using its 0-based index.
+6. If no story is truly groundbreaking, still pick the best one as priority 9 or 10 to lead the edition.
+7. For each article, identify the "cleanSource"—a professional name for the publisher (e.g., 'The Verge' instead of 'https://theverge.com/feed').
+8. NEVER use emojis (😀, 🚀, 📰, etc.) in any headline or text. Use plain text only.
+9. Return one result per article, using its 0-based index.
 
 CANDIDATE ARTICLES:
 ${articlesContext}
@@ -131,7 +132,30 @@ ${publishedContext}`,
 			return diffDays > 5;
 		};
 
-		for (const result of sortedResults) {
+		const freshnessRank = (article: Article): number => {
+			const parsed = getArticleDate(article);
+			if (!parsed) return 0;
+			const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+			const storyStart = new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+			const diffDays = Math.floor((todayStart.getTime() - storyStart.getTime()) / (1000 * 60 * 60 * 24));
+			if (diffDays <= 0) return 3; // today
+			if (diffDays === 1) return 2; // yesterday
+			if (diffDays <= 5) return 1; // recent but older
+			return 0;
+		};
+
+		const freshnessSorted = [...sortedResults].sort((a, b) => {
+			const articleA = articles[a.index];
+			const articleB = articles[b.index];
+			if (!articleA || !articleB) return 0;
+
+			const rankA = freshnessRank(articleA);
+			const rankB = freshnessRank(articleB);
+			if (rankA !== rankB) return rankB - rankA;
+			return b.priority - a.priority;
+		});
+
+		for (const result of freshnessSorted) {
 			const article = articles[result.index];
 			if (!article) continue;
 
