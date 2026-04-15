@@ -39,6 +39,8 @@ The **crew** isn't just a simple script—it's a relay team of autonomous agents
 - **Investigative Reporter** - Conducts deep-dive research and writes high-fidelity long-form features.
 - **Podcast Editor** - Drafts fluid conversational scripts explicitly tailored for audio output.
 - **Podcast Voice** - Generates realistic voice narration using Deepgram TTS for the final broadcast.
+  
+<img width="1940" height="1390" alt="ai newsroom crew" src="https://github.com/user-attachments/assets/a58f778a-dc93-4fc9-babb-6b3e8d3bf26f" />
 
 ## Setup & Installation
 
