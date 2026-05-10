@@ -25,7 +25,7 @@ The high-performance architecture guarantees seamless processing from extraction
 - **Styling:** Tailwind CSS (Premium Dark Mode UI & Glassmorphism)
 - **AI Brain:** Google Gemini 2.5 Flash / Pro (Core agent intelligence)
 - **Audio Synthesis:** Deepgram Aura (Ultra-realistic TTS voice generation)
-- **Scraping Layer:** Crawl4AI / Firecrawl integration
+- **Scraping Layer:** Firecrawl (Optimized with URL deduplication)
 - **Database & Storage:** PostgreSQL (Neon) & DigitalOcean Spaces (S3 compatible)
 - **Caching & State:** Upstash (Serverless Redis)
 
@@ -33,7 +33,7 @@ The high-performance architecture guarantees seamless processing from extraction
 
 The **crew** isn't just a simple script—it's a relay team of autonomous agents operating under a single instruction.
 
-- **Investigator** - Scours the web for vital facts and raw developments.
+- **Investigator** - Scours the web for vital facts using Firecrawl; includes smart URL deduplication to minimize API usage.
 - **Chief Editor** - Performs tiered triage of news items into Lead features, Analytical reports, or Briefs.
 - **Editor** - Refines raw data into crisp stories and summaries for rapid-fire consumption.
 - **Investigative Reporter** - Conducts deep-dive research and writes high-fidelity long-form features.
@@ -129,9 +129,9 @@ This keeps the same API route compatible with different hosting and cron provide
 This repository includes `.github/workflows/scheduled-pipeline.yml` and runs the newsroom pipeline directly inside GitHub Actions, avoiding deployment request timeouts.
 
 1. Add these repository secrets in GitHub:
-   - Required: `GOOGLE_GENERATIVE_AI_API_KEY`, `DEEPGRAM_API_KEY`, `DATABASE_URL`
+   - Required: `GOOGLE_GENERATIVE_AI_API_KEY`, `DEEPGRAM_API_KEY`, `DATABASE_URL`, `FIRECRAWL_API_KEY`
    - Usually required for full output: `DO_SPACES_KEY`, `DO_SPACES_SECRET`, `DO_SPACES_ENDPOINT`, `DO_SPACES_BUCKET`
-   - Optional depending on setup: `FIRECRAWL_API_KEY`, `CRAWL4AI_API_URL`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `SLACK_WEBHOOK_URL`
+   - Optional depending on setup: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `SLACK_WEBHOOK_URL`
 2. The workflow runs every day at `08:00 UTC` (`0 8 * * *`) and can also be run manually from the Actions tab.
 3. This workflow uses GitHub Actions concurrency control to prevent overlapping scheduled runs.
 4. If you want to use Vercel Cron instead, add this block to `vercel.json`:
