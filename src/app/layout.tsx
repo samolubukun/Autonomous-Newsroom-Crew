@@ -21,7 +21,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} bg-background text-foreground antialiased min-h-screen selection:bg-purple-500/30 selection:text-purple-200`}>
+      <body 
+        className={`${inter.className} bg-background text-foreground antialiased min-h-screen selection:bg-purple-500/30 selection:text-purple-200`}
+        suppressHydrationWarning
+      >
         <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark" disableTransitionOnChange>
           <Navbar />
           {children}
