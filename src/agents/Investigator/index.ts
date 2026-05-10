@@ -109,8 +109,8 @@ export async function runInvestigator(options: { dynamicSources?: string[] } = {
 		}
 	}
 
-	// 1. Scrape ALL sources concurrently (no AI calls yet)
-	console.log(`Investigator: Scraping ${sources.length} sources in parallel...`);
+	// 1. Scrape ALL sources concurrently
+	console.log(`Investigator: Scraping ${sources.length} sources in parallel via Firecrawl...`);
 	const scrapeResults = await Promise.allSettled(
 		sources.map(async (source) => {
 			const result = await scrapeUrl(source, { formats: ["markdown"] });
@@ -181,7 +181,15 @@ IMPORTANT:
 			date_found: new Date().toISOString(),
 		}));
 
-		console.log(`Investigator: Extracted ${articles.length} total stories.`);
+		// Deduplicate by URL
+		const uniqueLinks = new Set<string>();
+		articles = articles.filter(a => {
+			if (!a.link || uniqueLinks.has(a.link)) return false;
+			uniqueLinks.add(a.link);
+			return true;
+		});
+
+		console.log(`Investigator: Extracted ${articles.length} unique stories from sources.`);
 	} catch (error) {
 		console.error("Investigator: AI extraction failed:", error instanceof Error ? error.message : error);
 	}
