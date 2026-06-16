@@ -73,7 +73,7 @@ export const stories = {
 		try {
 			const rows = await sql`
 				SELECT * FROM stories 
-				WHERE DATE(published_at) = CURRENT_DATE
+				WHERE DATE(published_at) = (SELECT DATE(MAX(published_at)) FROM stories)
 				ORDER BY published_at DESC
 			`;
 			return rows as any as Story[];

@@ -6,6 +6,8 @@ import { runReporter } from "../../../agents/Reporter";
 import { runPodcastEditor } from "../../../agents/PodcastEditor";
 import { runPodcastVoice } from "../../../agents/PodcastVoice";
 import { postPodcastToSlack } from "../../../lib/notifications";
+import { tasks } from "@trigger.dev/sdk";
+import type { newsroomPipeline } from "../../../trigger/newsroom";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300; // 5 minutes (Vercel Pro)
@@ -49,12 +51,51 @@ async function runPipeline(request: Request) {
 		return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
 	}
 
-	console.log("🚀 Starting Newsroom Standalone Pipeline via API");
+	// 0. Extract dynamic sources from body or query if available
+	let dynamicSources: string[] | undefined = undefined;
+	if (request.method === "POST") {
+		try {
+			const body = await request.clone().json();
+			if (body?.dynamicSources && Array.isArray(body.dynamicSources)) {
+				dynamicSources = body.dynamicSources;
+			}
+		} catch {}
+	} else {
+		const url = new URL(request.url);
+		const sourcesParam = url.searchParams.get("dynamicSources");
+		if (sourcesParam) {
+			dynamicSources = sourcesParam.split(",").map(s => s.trim());
+		}
+	}
+
+	// 1. Check if Trigger.dev is configured
+	const hasTriggerKey = !!process.env.TRIGGER_SECRET_KEY;
+	if (hasTriggerKey) {
+		console.log("🚀 Triggering Newsroom Pipeline in background via Trigger.dev");
+		try {
+			const handle = await tasks.trigger<typeof newsroomPipeline>("newsroom-pipeline", {
+				dynamicSources
+			});
+			return NextResponse.json({
+				success: true,
+				message: "Pipeline triggered via Trigger.dev successfully!",
+				results: {
+					runId: handle.id,
+					triggeredVia: "trigger.dev"
+				}
+			});
+		} catch (error) {
+			console.error("❌ Failed to trigger via Trigger.dev, falling back to synchronous execution:", error);
+		}
+	}
+
+	// Fallback to original synchronous execution if no Trigger.dev key or triggering fails
+	console.log("🚀 Starting Newsroom Standalone Pipeline synchronously (Local Fallback)");
 
 	try {
 		// 1. Investigation Phase
 		console.log("\n--- PHASE 1: INVESTIGATION ---");
-		const { articles } = await runInvestigator();
+		const { articles } = await runInvestigator({ dynamicSources });
 		
 		if (!articles || articles.length === 0) {
 			return NextResponse.json({ success: true, message: "No new articles found." });
@@ -109,12 +150,13 @@ async function runPipeline(request: Request) {
 
 		return NextResponse.json({
 			success: true,
-			message: "Pipeline completed successfully!",
+			message: "Pipeline completed successfully (synchronous fallback)!",
 			results: {
 				articlesFound: articles.length,
 				storiesCurated: stories.length,
 				podcastProduced,
-				audioUrl
+				audioUrl,
+				triggeredVia: "synchronous-fallback"
 			}
 		});
 	} catch (error) {
@@ -134,3 +176,4 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
 	return runPipeline(request);
 }
+
