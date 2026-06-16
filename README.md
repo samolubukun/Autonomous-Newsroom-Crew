@@ -28,6 +28,7 @@ The high-performance architecture guarantees seamless processing from extraction
 - **Scraping Layer:** Firecrawl (Optimized with URL deduplication)
 - **Database & Storage:** PostgreSQL (Neon) & DigitalOcean Spaces (S3 compatible)
 - **Caching & State:** Upstash (Serverless Redis)
+- **Background Jobs & Scheduler:** Trigger.dev v4 (handles execution and 3-day automation)
 
 ## The Engine Room (6 Core Agents)
 
@@ -93,6 +94,13 @@ Follow these standard instructions to hook up the engine locally.
    ```
    This runs `npm run clear-db` first, then `npm run newsroom`.
 
+8. **Run Trigger.dev locally (Background Worker):**
+   In a separate terminal, run:
+   ```bash
+   npm run trigger:dev
+   ```
+   *This loads the Trigger.dev local worker, enabling tasks to execute asynchronously in the background.*
+
 
 ---
 
@@ -107,7 +115,19 @@ Once the server is running, the **AI Newsroom Dashboard** gives you immediate fe
 
 ## Deployment
 
-Ensure all your `.env` secrets are configured in your Vercel or deployment dashboard before committing. Remember to set the Cron Jobs correctly if you wish the crew to operate fully autonomously daily without requiring manual triggering (the `/api/run` route is already exposed for cron services).
+Ensure all your `.env` secrets are configured in your Vercel or deployment dashboard before committing.
+
+### Trigger.dev Background Execution (Recommended)
+
+To run the newsroom crew asynchronously and bypass standard serverless function timeouts, we use **Trigger.dev (v4)**:
+
+1. **Environment Variables**: Add your API keys (Gemini, Deepgram, Firecrawl, etc.) and `TRIGGER_SECRET_KEY` under the **Environment Variables** tab of your project on the Trigger.dev dashboard.
+2. **Project Reference**: Ensure `trigger.config.ts` matches your dashboard Project Ref ID.
+3. **Deploy to the Cloud**:
+   ```bash
+   npx trigger.dev@latest deploy --native-build-server
+   ```
+4. **Automated Running**: The scheduler in `src/trigger/newsroom.ts` is configured to trigger the pipeline automatically **every 3 days at 8:00 AM UTC**.
 
 ### Daily Scheduling Across Platforms
 
