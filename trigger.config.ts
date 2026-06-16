@@ -6,6 +6,9 @@ export default defineConfig({
   logLevel: "log",
   dirs: ["./src/trigger"],
   maxDuration: 900, // 15 minutes max duration for newsroom pipeline
+  build: {
+    external: ["zod"],
+  },
   retries: {
     enabledInDev: false,
     default: {
